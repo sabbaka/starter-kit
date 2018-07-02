@@ -91,12 +91,24 @@ info.files.forEach(function(value) {
 info.files = files;
 
 var plugins = [
+    new webpack.DefinePlugin({
+        'process.env': {
+            'NODE_ENV': JSON.stringify(production ? 'production' : 'development')
+        }
+    }),
     new copy(info.files),
     new extract("[name].css")
 ];
 
 /* Only minimize when in production mode */
 if (production) {
+    plugins.unshift(new webpack.optimize.UglifyJsPlugin({
+        beautify: true,
+        compress: {
+            warnings: false
+        },
+    }));
+
     /* Rename output files when minimizing */
     output.filename = "[name].min.js";
 
@@ -109,13 +121,13 @@ if (production) {
 }
 
 module.exports = {
-    mode: production ? 'production' : 'development',
     entry: info.entries,
     externals: externals,
     output: output,
     devtool: "source-map",
     resolve: {
         alias: {
+            "react$": path.resolve(nodedir, "react-lite/dist/react-lite.js"),
             "fs": path.resolve(nodedir, "fs-extra"),
         },
         modules: [libdir, nodedir],
@@ -125,13 +137,19 @@ module.exports = {
             {
                 enforce: 'pre',
                 exclude: /node_modules/,
+                loader: 'jshint-loader',
+                test: /\.js$/
+            },
+            {
+                enforce: 'pre',
+                exclude: /node_modules/,
                 loader: 'eslint-loader',
                 test: /\.jsx$/
             },
             {
                 enforce: 'pre',
                 exclude: /node_modules/,
-                loader: 'eslint-loader',
+                loader: 'jshint-loader?esversion=6',
                 test: /\.es6$/
             },
             {
