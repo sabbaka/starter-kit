@@ -14,6 +14,7 @@ const srcdir = (process.env.SRCDIR || __dirname) + path.sep + "src";
 const builddir = (process.env.SRCDIR || __dirname);
 const distdir = builddir + path.sep + "dist";
 const section = process.env.ONLYDIR || null;
+const libdir = path.resolve(srcdir, "pkg" + path.sep + "lib");
 const nodedir = path.resolve((process.env.SRCDIR || __dirname), "node_modules");
 
 /* A standard nodejs and webpack pattern */
@@ -21,13 +22,25 @@ var production = process.env.NODE_ENV === 'production';
 
 var info = {
     entries: {
-        "index": [
-            "./index.es6"
+        "recordings": [
+            "./recordings.jsx",
+            "./recordings.css",
+            "./pkg/lib/listing.less",
+        ],
+        "config": [
+            "./config.jsx",
+            "./recordings.css",
         ]
     },
     files: [
         "index.html",
+        "config.html",
+        "player.jsx",
+        "recordings.jsx",
+        "recordings.css",
+        "terminal.jsx",
         "manifest.json",
+        "timer.css",
     ],
 };
 
@@ -114,8 +127,10 @@ module.exports = {
     devtool: "source-map",
     resolve: {
         alias: {
-            "react$": path.resolve(nodedir, "react-lite/dist/react-lite.js")
-        }
+            "react$": path.resolve(nodedir, "react-lite/dist/react-lite.js"),
+            "fs": path.resolve(nodedir, "fs-extra"),
+        },
+        modules: [libdir, nodedir],
     },
     module: {
         rules: [
@@ -153,9 +168,17 @@ module.exports = {
                 test: /\.es6$/
             },
             {
+                test: /\.less$/,
+                loader: extract.extract("css-loader!less-loader")
+            },
+            {
                 exclude: /node_modules/,
                 loader: extract.extract('css-loader!sass-loader'),
                 test: /\.scss$/
+            },
+            {
+                loader: extract.extract("css-loader"),
+                test: /\.css$/,
             }
         ]
     },
