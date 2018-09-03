@@ -1,6 +1,6 @@
 {
     "version": "163.x",
-    "name": "session_recording",
+    "name": "session-recording",
 
     "requires": {
 	"cockpit": "122"
@@ -8,8 +8,8 @@
 
     "menu": {
         "index": {
-            "label": "Session Recording",
-            "order": 100
+            "label": "Session Recording Module",
+            "order": 110
         }
     }
 }
