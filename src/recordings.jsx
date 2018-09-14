@@ -26,6 +26,7 @@
     let moment = require("moment");
     let Journal = require("journal");
     let React = require("react");
+    let ReactDOM = require("react-dom");
     let Listing = require("cockpit-components-listing.jsx");
     let Player = require("./player.jsx");
 
@@ -44,7 +45,7 @@
             s = '0' + s;
         }
         return ((i < 0) ? '-' : '') + s;
-    }
+    };
 
     /*
      * Format date and time for a number of milliseconds since Epoch.
@@ -107,7 +108,7 @@
         }
 
         return false;
-    }
+    };
 
     /*
      * A component representing a date & time picker based on bootstrap-datetime-picker.
@@ -197,7 +198,7 @@
                 </div>
             );
         }
-    }
+    };
 
     /*
      * A component representing a username input text field.
@@ -221,7 +222,7 @@
                 </div>
             );
         }
-    }
+    };
 
     let HostnamePicker = class extends React.Component {
         constructor(props) {
@@ -241,7 +242,7 @@
                 </div>
             );
         }
-    }
+    };
 
     function LogElement(props) {
         const entry = props.entry;
@@ -361,10 +362,10 @@
 
                 const self = this;
                 this.journalCtl = Journal.journalctl(matches, options)
-                    .fail(this.journalctlError)
-                    .done(function(data) {
-                        self.journalctlIngest(data);
-                    });
+                        .fail(this.journalctlError)
+                        .done(function(data) {
+                            self.journalctlIngest(data);
+                        });
             }
         }
 
@@ -419,7 +420,7 @@
                 return (<div>Loading...</div>);
             }
         }
-    }
+    };
 
     /*
      * A component representing a single recording view.
@@ -446,12 +447,12 @@
 
         getHostname() {
             cockpit.spawn(["hostname"], { err: "ignore" })
-                .done(function(output) {
-                    this.hostname = $.trim(output);
-                })
-                .fail(function(ex) {
-                    console.log(ex);
-                });
+                    .done(function(output) {
+                        this.hostname = $.trim(output);
+                    })
+                    .fail(function(ex) {
+                        console.log(ex);
+                    });
         }
 
         Hostname(props) {
@@ -618,17 +619,17 @@
         getColumnTitles() {
             let columnTitles = [
                 (<div id="user" className="sort" onClick={this.handleColumnClick}><span>{_("User")}</span> <div
-                    ref="user" className="sort-icon"></div></div>),
+                    ref="user" className="sort-icon" /></div>),
                 (<div id="start" className="sort" onClick={this.handleColumnClick}><span>{_("Start")}</span> <div
-                    ref="start" className="sort-icon"></div></div>),
+                    ref="start" className="sort-icon" /></div>),
                 (<div id="end" className="sort" onClick={this.handleColumnClick}><span>{_("End")}</span> <div
-                    ref="end" className="sort-icon"></div></div>),
+                    ref="end" className="sort-icon" /></div>),
                 (<div id="duration" className="sort" onClick={this.handleColumnClick}><span>{_("Duration")}</span> <div
-                    ref="duration" className="sort-icon"></div></div>),
+                    ref="duration" className="sort-icon" /></div>),
             ];
             if (this.props.diff_hosts === true) {
                 columnTitles.push((<div id="hostname" className="sort" onClick={this.handleColumnClick}>
-                    <span>{_("Hostname")}</span> <div ref="hostname" className="sort-icon"></div></div>));
+                    <span>{_("Hostname")}</span> <div ref="hostname" className="sort-icon" /></div>));
             }
             return columnTitles;
         }
@@ -637,7 +638,7 @@
             let columns = [r.user,
                 formatDateTime(r.start),
                 formatDateTime(r.end),
-                formatDuration(r.end - r.start)]
+                formatDuration(r.end - r.start)];
             if (this.props.diff_hosts === true) {
                 columns.push(r.hostname);
             }
@@ -688,7 +689,7 @@
                                 </td>
                                 <td>
                                     <HostnamePicker onHostnameChange={this.props.onHostnameChange}
-                                                    hostname={this.props.hostname}/>
+                                                    hostname={this.props.hostname} />
                                 </td>
                                 <td className="top">
                                     <label className="control-label" htmlFor="config">Configuration</label>
@@ -749,7 +750,7 @@
                 error_tlog_uid: false,
                 diff_hosts: false,
                 curTs: null,
-            }
+            };
         }
 
         /*
@@ -1040,5 +1041,5 @@
         }
     };
 
-    React.render(<View />, document.getElementById('view'));
+    ReactDOM.render(<View />, document.getElementById('view'));
 }());

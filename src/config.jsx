@@ -22,6 +22,7 @@
 
     let cockpit = require("cockpit");
     let React = require("react");
+    let ReactDOM = require("react-dom");
     let json = require('comment-json');
     let ini = require('ini');
 
@@ -38,7 +39,7 @@
                 config: null,
                 file_error: null,
                 submitting: "none",
-            }
+            };
         }
 
         handleInputChange(e) {
@@ -294,7 +295,7 @@
             };
         }
 
-        handleInputChange(e){
+        handleInputChange(e) {
             const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
             const name = e.target.name;
             const config = this.state.config;
@@ -328,12 +329,12 @@
         }
 
         handleSubmit() {
-            this.file.replace(this.state.config).done( function() {
+            this.file.replace(this.state.config).done(function() {
                 console.log('updated');
             })
-                .fail( function(error) {
-                    console.log(error);
-                });
+                    .fail(function(error) {
+                        console.log(error);
+                    });
             event.preventDefault();
         }
 
@@ -342,42 +343,40 @@
                 <form onSubmit={this.handleSubmit}>
                     <table className="info-table-ct col-md-12">
                         <tbody>
-                        <tr>
-                            <td><label htmlFor="scope">Scope</label></td>
-                            <td>
-                                <select name="scope" id="scope" className="form-control"
+                            <tr>
+                                <td><label htmlFor="scope">Scope</label></td>
+                                <td>
+                                    <select name="scope" id="scope" className="form-control"
                                         value={this.state.config.session_recording.scope}
                                         onChange={this.handleInputChange} >
-                                    <option value="none">None</option>
-                                    <option value="some">Some</option>
-                                    <option value="all">All</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><label htmlFor="users">Users</label></td>
-                            <td>
-                                <input type="text" id="users" name="users"
+                                        <option value="none">None</option>
+                                        <option value="some">Some</option>
+                                        <option value="all">All</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label htmlFor="users">Users</label></td>
+                                <td>
+                                    <input type="text" id="users" name="users"
                                        value={this.state.config.session_recording.users}
                                        className="form-control" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><label htmlFor="groups">Groups</label></td>
-                            <td>
-                                <input type="text" id="groups" name="groups"
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label htmlFor="groups">Groups</label></td>
+                                <td>
+                                    <input type="text" id="groups" name="groups"
                                        value={this.state.config.session_recording.groups}
                                        className="form-control" onChange={this.handleInputChange} />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-
-                            </td>
-                            <td>
-                                <button className="btn btn-default" type="submit">Save</button>
-                            </td>
-                        </tr>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td />
+                                <td>
+                                    <button className="btn btn-default" type="submit">Save</button>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </form>
@@ -385,6 +384,6 @@
         }
     };
 
-    React.render(<Config />, document.getElementById('sr_config'));
-    React.render(<SssdConfig />, document.getElementById('sssd_config'));
+    ReactDOM.render(<Config />, document.getElementById('sr_config'));
+    ReactDOM.render(<SssdConfig />, document.getElementById('sssd_config'));
 }());
