@@ -25,6 +25,60 @@
     let json = require('comment-json');
     let ini = require('ini');
 
+    function parse_passwd_content(content) {
+        if (!content) {
+            console.warn("Couldn't read /etc/passwd");
+            return [ ];
+        }
+
+        var ret = [ ];
+        var lines = content.split('\n');
+        var column;
+
+        for (var i = 0; i < lines.length; i++) {
+            if (! lines[i])
+                continue;
+            column = lines[i].split(':');
+            ret.push({
+                name: column[0],
+                password: column[1],
+                uid: parseInt(column[2], 10),
+                gid: parseInt(column[3], 10),
+                gecos: column[4].replace(/,*$/, ''),
+                home: column[5],
+                shell: column[6],
+            });
+        }
+
+        return ret;
+    }
+
+    function parse_group_content(content) {
+        content = (content || "").trim();
+        if (!content) {
+            console.warn("Couldn't read /etc/group");
+            return [ ];
+        }
+
+        var ret = [ ];
+        var lines = content.split('\n');
+        var column;
+
+        for (var i = 0; i < lines.length; i++) {
+            if (! lines[i])
+                continue;
+            column = lines[i].split(':');
+            ret.push({
+                name: column[0],
+                password: column[1],
+                gid: parseInt(column[2], 10),
+                userlist: column[3].split(','),
+            });
+        }
+
+        return ret;
+    }
+
     let Config = class extends React.Component {
         constructor(props) {
             super(props);
@@ -276,14 +330,46 @@
         }
     };
 
+    let CheckboxGroup = function(props) {
+        const items = props.items;
+        const checked_list = props.checked_list;
+        const name = props.name;
+        const onChange = props.onChange;
+        const inputs = items.map((item) => {
+            let checked = false;
+            if (checked_list != null) {
+                if (checked_list.constructor === Array) {
+                    if (checked_list.includes(item)) {
+                        checked = true;
+                    }
+                }
+            }
+
+            console.log(item, checked);
+            return (
+                <label htmlFor={"checkbox" + item }>
+                    <input id={"checkbox" + item } type="checkbox" name={name} value={item} onChange={onChange} checkedAttr={checked} />{item}
+                </label>
+            );
+        });
+        return (
+            <div>
+                {inputs}
+            </div>
+        );
+    };
+
     let SssdConfig = class extends React.Component {
         constructor(props) {
             super(props);
             this.handleSubmit = this.handleSubmit.bind(this);
             this.handleInputChange = this.handleInputChange.bind(this);
+            this.handleCheckboxes = this.handleCheckboxes.bind(this);
             this.setConfig = this.setConfig.bind(this);
             this.file = null;
             this.state = {
+                users: [],
+                groups: [],
                 config: {
                     session_recording: {
                         scope: null,
@@ -294,7 +380,62 @@
             };
         }
 
-        handleInputChange(e){
+        helper() {
+
+
+
+        }
+
+        validateGroups() {
+            console.log(this.state.users);
+        }
+
+        validateUsers () {
+            console.log(this.state.groups);
+            /*
+            function parse_accounts(content) {
+                self.accounts = parse_passwd_content(content);
+                self.update();
+            }
+
+            this.handle_passwd =  cockpit.file('/etc/passwd');
+
+            this.handle_passwd.read()
+                .done(parse_accounts)
+                .fail(log_unexpected_error);
+
+            this.handle_passwd.watch(parse_accounts);
+            */
+            /*
+            var accounts = this.accounts.filter(function(account) {
+                return !((account["uid"] < 1000 && account["uid"] !== 0) ||
+                    account["shell"].match(/^(\/usr)?\/sbin\/nologin/) ||
+                    account["shell"] === '/bin/false');
+            });
+            */
+        }
+
+        handleCheckboxes(e) {
+            let name = e.target.name;
+            let checked = e.target.checked;
+            let list = this.state[name].slice();
+            let value = e.target.value;
+
+            if (checked === true && !list.includes(value)) {
+                list.push(value);
+            }
+
+            if (checked === false && list.includes(value)) {
+                list.splice(list.indexOf(value), 1);
+            }
+
+            console.log(list);
+            console.log(this.state[name]);
+
+        }
+
+
+        handleInputChange(e) {
             const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
             const name = e.target.name;
             const config = this.state.config;
@@ -308,6 +449,8 @@
         }
 
         componentDidMount() {
+            let _this = this;
+
             let syntax_object = {
                 parse:     ini.parse,
                 stringify: ini.stringify
@@ -325,9 +468,61 @@
             promise.fail(function(error) {
                 console.log(error);
             });
+
+            function log_unexpected_error(error) {
+                console.warn("Unexpected error", error);
+            }
+
+            function parse_accounts(content) {
+                let users = parse_passwd_content(content).filter((user) => {
+                    return !((user["uid"] < 1000 && user["uid"] !== 0) ||
+                        user["shell"].match(/^(\/usr)?\/sbin\/nologin/) ||
+                        user["shell"] === '/bin/false');
+                });
+                users = users.map((user) => {
+                    return user["name"];
+                });
+                _this.setState({users: users});
+            }
+
+            function parse_groups(content) {
+                let groups = parse_group_content(content).filter((group) => {
+                    return group["gid"] > 1000;
+                });
+                groups = groups.map((group) => {
+                    return group["name"];
+                });
+                _this.setState({groups: groups});
+            }
+
+            this.handle_passwd =  cockpit.file('/etc/passwd');
+
+            this.handle_passwd.read()
+                .done(parse_accounts)
+                .fail(log_unexpected_error);
+
+            this.handle_passwd.watch(parse_accounts);
+
+            this.handle_groups = cockpit.file('/etc/group');
+
+            this.handle_groups.read()
+                .done(parse_groups)
+                .fail(log_unexpected_error);
+
+            this.handle_groups.watch(parse_groups);
         }
 
         handleSubmit() {
+            console.log(this.state.config);
+
+            if (this.state.config.users) {
+                this.validateUsers();
+            }
+
+            if (this.state.config.groups) {
+                this.validateGroups();
+            }
+
             this.file.replace(this.state.config).done( function() {
                 console.log('updated');
             })
@@ -359,7 +554,8 @@
                             <td>
                                 <input type="text" id="users" name="users"
                                        value={this.state.config.session_recording.users}
-                                       className="form-control" />
+                                       className="form-control" onChange={this.handleInputChange} />
+                                <CheckboxGroup items={this.state.users} name="users" onChange={this.handleCheckboxes} checked_list={this.state.config.session_recording.users} />
                             </td>
                         </tr>
                         <tr>
@@ -368,6 +564,7 @@
                                 <input type="text" id="groups" name="groups"
                                        value={this.state.config.session_recording.groups}
                                        className="form-control" onChange={this.handleInputChange} />
+                                <CheckboxGroup items={this.state.groups} name="groups" onChange={this.handleCheckboxes} checked_list={this.state.config.session_recording.groups} />
                             </td>
                         </tr>
                         <tr>
