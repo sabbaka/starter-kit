@@ -117,7 +117,7 @@
      * - onDateChange: function to call on date change event of datepicker.
      * - date: variable to pass which will be used as initial value.
      */
-    let Datetimepicker = class extends React.Component {
+    class Datetimepicker extends React.Component {
         constructor(props) {
             super(props);
             this.handleDateChange = this.handleDateChange.bind(this);
@@ -198,47 +198,57 @@
                 </div>
             );
         }
-    };
+    }
 
     /*
      * A component representing a username input text field.
      * TODO make as a select / drop-down with list of exisiting users.
     */
-    let UserPicker = class extends React.Component {
+    class UserPicker extends React.Component {
         constructor(props) {
             super(props);
             this.handleUsernameChange = this.handleUsernameChange.bind(this);
+            this.state = {
+                username: cockpit.location.options.username || "",
+            };
         }
 
         handleUsernameChange(e) {
-            this.props.onUsernameChange(e.target.value);
+            const value = e.target.value;
+            this.setState({username: value});
+            this.props.onUsernameChange(value);
         }
 
         render() {
             return (
                 <div className="input-group">
-                    <input type="text" className="form-control" value={this.props.username}
+                    <input type="text" className="form-control" value={this.state.username}
                         onChange={this.handleUsernameChange} />
                 </div>
             );
         }
-    };
+    }
 
     let HostnamePicker = class extends React.Component {
         constructor(props) {
             super(props);
             this.handleHostnameChange = this.handleHostnameChange.bind(this);
+            this.state = {
+                hostname: cockpit.location.options.hostname || "",
+            };
         }
 
         handleHostnameChange(e) {
-            this.props.onHostnameChange(e.target.value);
+            const value = e.target.value;
+            this.setState({hostname: value});
+            this.props.onHostnameChange(value);
         }
 
         render() {
             return (
                 <div className="input-group">
-                    <input type="text" className="form-control" value={this.props.hostname}
-                           onChange={this.handleHostnameChange} />
+                    <input type="text" className="form-control" value={this.state.hostname}
+                       onChange={this.handleHostnameChange} />
                 </div>
             );
         }
@@ -254,7 +264,7 @@
             className = 'cockpit-logline highlighted';
         }
         return (
-            <div className={className} data-cursor={entry.__CURSOR}>
+            <div className={className} data-cursor={entry.__CURSOR} key={entry.__CURSOR}>
                 <div className="cockpit-log-warning">
                     <i className="fa fa-exclamation-triangle" />
                 </div>
@@ -269,7 +279,7 @@
         const start = props.start;
         const end = props.end;
         const rows = entries.map((entry) =>
-            <LogElement entry={entry} start={start} end={end} />
+            <LogElement key={entry.__CURSOR} entry={entry} start={start} end={end} />
         );
         return (
             <div className="panel panel-default cockpit-log-panel" id="logs-view">
@@ -278,7 +288,7 @@
         );
     }
 
-    let Logs = class extends React.Component {
+    class Logs extends React.Component {
         constructor(props) {
             super(props);
             this.journalctlError = this.journalctlError.bind(this);
@@ -420,7 +430,7 @@
                 return (<div>Loading...</div>);
             }
         }
-    };
+    }
 
     /*
      * A component representing a single recording view.
@@ -428,7 +438,7 @@
      * - recording: either null for no recording data available yet, or a
      *              recording object, as created by the View below.
      */
-    let Recording = class extends React.Component {
+    class Recording extends React.Component {
         constructor(props) {
             super(props);
             this.goBackToList = this.goBackToList.bind(this);
@@ -503,39 +513,41 @@
                                     </div>
                                     <div className="panel-body">
                                         <table className="form-table-ct">
-                                            <tr>
-                                                <td>{_("ID")}</td>
-                                                <td>{r.id}</td>
-                                            </tr>
-                                            <this.Hostname hostname={r.hostname} />
-                                            <tr>
-                                                <td>{_("Boot ID")}</td>
-                                                <td>{r.boot_id}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{_("Session ID")}</td>
-                                                <td>{r.session_id}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{_("PID")}</td>
-                                                <td>{r.pid}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{_("Start")}</td>
-                                                <td>{formatDateTime(r.start)}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{_("End")}</td>
-                                                <td>{formatDateTime(r.end)}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{_("Duration")}</td>
-                                                <td>{formatDuration(r.end - r.start)}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{_("User")}</td>
-                                                <td>{r.user}</td>
-                                            </tr>
+                                            <tbody>
+                                                <tr>
+                                                    <td>{_("ID")}</td>
+                                                    <td>{r.id}</td>
+                                                </tr>
+                                                <this.Hostname hostname={r.hostname} />
+                                                <tr>
+                                                    <td>{_("Boot ID")}</td>
+                                                    <td>{r.boot_id}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>{_("Session ID")}</td>
+                                                    <td>{r.session_id}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>{_("PID")}</td>
+                                                    <td>{r.pid}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>{_("Start")}</td>
+                                                    <td>{formatDateTime(r.start)}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>{_("End")}</td>
+                                                    <td>{formatDateTime(r.end)}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>{_("Duration")}</td>
+                                                    <td>{formatDuration(r.end - r.start)}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>{_("User")}</td>
+                                                    <td>{r.user}</td>
+                                                </tr>
+                                            </tbody>
                                         </table>
                                     </div>
                                 </div>
@@ -546,14 +558,14 @@
                 );
             }
         }
-    };
+    }
 
     /*
      * A component representing a list of recordings.
      * Properties:
      * - list: an array with recording objects, as created by the View below
      */
-    let RecordingList = class extends React.Component {
+    class RecordingList extends React.Component {
         constructor(props) {
             super(props);
             this.handleColumnClick = this.handleColumnClick.bind(this);
@@ -654,6 +666,7 @@
                 let r = list[i];
                 let columns = this.getColumns(r);
                 rows.push(<Listing.ListingRow
+                            key={r.id}
                             rowId={r.id}
                             columns={columns}
                             navigateToItem={this.navigateToRecording.bind(this, r)} />);
@@ -662,43 +675,44 @@
                 <div>
                     <div className="content-header-extra">
                         <table className="form-table-ct">
-                            <th>
-                                <td className="top">
-                                    <label className="control-label" htmlFor="dateSince">Since</label>
-                                </td>
-                                <td>
-                                    <Datetimepicker onDateChange={this.props.onDateSinceChange}
-                                        date={this.props.dateSince} />
-                                </td>
-                                <td className="top">
-                                    <label className="control-label" htmlFor="dateUntil">Until</label>
-                                </td>
-                                <td>
-                                    <Datetimepicker onDateChange={this.props.onDateUntilChange}
-                                        date={this.props.dateUntil} />
-                                </td>
-                                <td className="top">
-                                    <label className="control-label" htmlFor="username">Username</label>
-                                </td>
-                                <td>
-                                    <UserPicker onUsernameChange={this.props.onUsernameChange}
-                                        username={this.props.username} />
-                                </td>
-                                <td className="top">
-                                    <label className="control-label" htmlFor="hostname">Hostname</label>
-                                </td>
-                                <td>
-                                    <HostnamePicker onHostnameChange={this.props.onHostnameChange}
-                                                    hostname={this.props.hostname} />
-                                </td>
-                                <td className="top">
-                                    <label className="control-label" htmlFor="config">Configuration</label>
-                                </td>
-                                <td className="top">
-                                    <a href="/cockpit/@localhost/session-recording/config.html" className="btn btn-default" data-toggle="modal">
-                                        <i className="fa fa-cog" aria-hidden="true" /></a>
-                                </td>
-                            </th>
+                            <thead>
+                                <tr>
+                                    <td className="top">
+                                        <label className="control-label" htmlFor="dateSince">Since</label>
+                                    </td>
+                                    <td>
+                                        <Datetimepicker onDateChange={this.props.onDateSinceChange}
+                                            date={this.props.dateSince} />
+                                    </td>
+                                    <td className="top">
+                                        <label className="control-label" htmlFor="dateUntil">Until</label>
+                                    </td>
+                                    <td>
+                                        <Datetimepicker onDateChange={this.props.onDateUntilChange}
+                                            date={this.props.dateUntil} />
+                                    </td>
+                                    <td className="top">
+                                        <label className="control-label" htmlFor="username">Username</label>
+                                    </td>
+                                    <td>
+                                        <UserPicker onUsernameChange={this.props.onUsernameChange} />
+                                    </td>
+                                    <td className="top">
+                                        <label className="control-label" htmlFor="hostname">Hostname</label>
+                                    </td>
+                                    <td>
+                                        <HostnamePicker onHostnameChange={this.props.onHostnameChange}
+                                                        hostname={this.props.hostname} />
+                                    </td>
+                                    <td className="top">
+                                        <label className="control-label" htmlFor="config">Configuration</label>
+                                    </td>
+                                    <td className="top">
+                                        <a href="/cockpit/@localhost/session-recording/config.html" className="btn btn-default" data-toggle="modal">
+                                            <i className="fa fa-cog" aria-hidden="true" /></a>
+                                    </td>
+                                </tr>
+                            </thead>
                         </table>
                     </div>
                     <Listing.Listing title={_("Sessions")}
@@ -710,14 +724,14 @@
                 </div>
             );
         }
-    };
+    }
 
     /*
      * A component representing the view upon a list of recordings, or a
      * single recording. Extracts the ID of the recording to display from
      * cockpit.location.path[0]. If it's zero, displays the list.
      */
-    let View = class extends React.Component {
+    class View extends React.Component {
         constructor(props) {
             super(props);
             this.onLocationChanged = this.onLocationChanged.bind(this);
@@ -745,8 +759,8 @@
                 dateUntil: cockpit.location.options.dateUntil || null,
                 dateUntilLastValid: null,
                 /* value to filter recordings by username */
-                username: cockpit.location.options.username || null,
-                hostname: cockpit.location.options.hostname || null,
+                username: cockpit.location.options.username || "",
+                hostname: cockpit.location.options.hostname || "",
                 error_tlog_uid: false,
                 diff_hosts: false,
                 curTs: null,
@@ -1039,7 +1053,7 @@
                 );
             }
         }
-    };
+    }
 
     ReactDOM.render(<View />, document.getElementById('view'));
 }());

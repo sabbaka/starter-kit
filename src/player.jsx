@@ -492,7 +492,7 @@ let InputPlayer = class extends React.Component {
                     <span>Input</span>
                 </div>
                 <div className="panel-body">
-                    <textarea name="input" id="input-textarea" cols="30" rows="10" readOnly disabled>{this.props.input}</textarea>
+                    <textarea name="input" id="input-textarea" cols="30" rows="10" value={this.props.input} readOnly disabled />
                 </div>
             </div>
         );
@@ -986,7 +986,7 @@ export class Player extends React.Component {
 
         const style = {
             "transform": "scale(" + this.state.scale + ") translate(" + this.state.term_translate + ")",
-            "transform-origin": "top left",
+            "transformOrigin": "top left",
             "display": "inline-block",
             "margin": "0 auto",
             "position": "absolute",
@@ -995,9 +995,9 @@ export class Player extends React.Component {
         };
 
         const scrollwrap = {
-            "min-width": "630px",
+            "minWidth": "630px",
             "height": this.containerHeight + "px",
-            "background-color": "#f5f5f5",
+            "backgroundColor": "#f5f5f5",
             "overflow": this.state.term_scroll,
             "position": "relative",
         };
@@ -1007,7 +1007,7 @@ export class Player extends React.Component {
         };
 
         const progressbar_style = {
-            'margin-top': '10px',
+            'marginTop': '10px',
         };
 
         const currentTsPost = function(currentTS, bufLength) {

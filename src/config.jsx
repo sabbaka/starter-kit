@@ -26,7 +26,7 @@
     let json = require('comment-json');
     let ini = require('ini');
 
-    let Config = class extends React.Component {
+    class Config extends React.Component {
         constructor(props) {
             super(props);
             this.handleInputChange = this.handleInputChange.bind(this);
@@ -60,10 +60,8 @@
 
         handleSubmit(event) {
             this.setState({submitting:"block"});
-            console.log(event);
             this.prepareConfig();
             this.file.replace(this.state.config).done(() => {
-                console.log('updated');
                 this.setState({submitting:"none"});
             })
                     .fail((error) => {
@@ -73,20 +71,16 @@
         }
 
         setConfig(data) {
-            console.log(data);
             this.setState({config: data});
         }
 
         fileReadFailed(reason) {
             console.log(reason);
             this.setState({file_error: reason});
-            console.log('failed to read file');
         }
 
         componentDidMount() {
             let parseFunc = function(data) {
-                console.log(data);
-                // return data;
                 return json.parse(data, null, true);
             };
 
@@ -106,8 +100,6 @@
                 superuser: true,
                 // host: string
             });
-
-            console.log(this.file);
 
             let promise = this.file.read();
 
@@ -254,10 +246,9 @@
                                 </tr>
                                 <tr>
                                     <td className="top" />
-                                    <div className="spinner spinner-sm" style={{display: this.state.submitting}} />
                                     <td>
                                         <button className="btn btn-default" type="submit">Save</button>
-
+                                        <div className="spinner spinner-sm" style={{display: this.state.submitting}} />
                                     </td>
                                 </tr>
                             </tbody>
@@ -275,9 +266,9 @@
                 );
             }
         }
-    };
+    }
 
-    let SssdConfig = class extends React.Component {
+    class SssdConfig extends React.Component {
         constructor(props) {
             super(props);
             this.handleSubmit = this.handleSubmit.bind(this);
@@ -285,27 +276,24 @@
             this.setConfig = this.setConfig.bind(this);
             this.file = null;
             this.state = {
-                config: {
-                    session_recording: {
-                        scope: null,
-                        users: null,
-                        groups: null,
-                    },
-                },
+                scope: "",
+                users: "",
+                groups: "",
+                submitting: "none",
             };
         }
 
         handleInputChange(e) {
             const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
             const name = e.target.name;
-            const config = this.state.config;
-            config.session_recording[name] = value;
-
-            this.forceUpdate();
+            const state = {};
+            state[name] = value;
+            this.setState(state);
         }
 
         setConfig(data) {
-            this.setState({config: data});
+            const config = {...data['session_recording']};
+            this.setState(config);
         }
 
         componentDidMount() {
@@ -328,14 +316,21 @@
             });
         }
 
-        handleSubmit() {
-            this.file.replace(this.state.config).done(function() {
-                console.log('updated');
+        handleSubmit(e) {
+            this.setState({submitting:"block"});
+            const obj = {};
+            obj.users = this.state.users;
+            obj.groups = this.state.groups;
+            obj.scope = this.state.scope;
+            obj['session_recording'] = this.state;
+            let _this = this;
+            this.file.replace(obj).done(function() {
+                _this.setState({submitting:"none"});
             })
                     .fail(function(error) {
                         console.log(error);
                     });
-            event.preventDefault();
+            e.preventDefault();
         }
 
         render() {
@@ -347,7 +342,7 @@
                                 <td><label htmlFor="scope">Scope</label></td>
                                 <td>
                                     <select name="scope" id="scope" className="form-control"
-                                        value={this.state.config.session_recording.scope}
+                                        value={this.state.scope}
                                         onChange={this.handleInputChange} >
                                         <option value="none">None</option>
                                         <option value="some">Some</option>
@@ -359,15 +354,15 @@
                                 <td><label htmlFor="users">Users</label></td>
                                 <td>
                                     <input type="text" id="users" name="users"
-                                       value={this.state.config.session_recording.users}
-                                       className="form-control" />
+                                       value={this.state.users}
+                                       className="form-control" onChange={this.handleInputChange} />
                                 </td>
                             </tr>
                             <tr>
                                 <td><label htmlFor="groups">Groups</label></td>
                                 <td>
                                     <input type="text" id="groups" name="groups"
-                                       value={this.state.config.session_recording.groups}
+                                       value={this.state.groups}
                                        className="form-control" onChange={this.handleInputChange} />
                                 </td>
                             </tr>
@@ -375,6 +370,7 @@
                                 <td />
                                 <td>
                                     <button className="btn btn-default" type="submit">Save</button>
+                                    <span className="spinner spinner-sm" style={{display: this.state.submitting}} />
                                 </td>
                             </tr>
                         </tbody>
@@ -382,7 +378,7 @@
                 </form>
             );
         }
-    };
+    }
 
     ReactDOM.render(<Config />, document.getElementById('sr_config'));
     ReactDOM.render(<SssdConfig />, document.getElementById('sssd_config'));
