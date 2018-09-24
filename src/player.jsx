@@ -465,7 +465,7 @@ let ProgressBar = class extends React.Component {
 
     jumpTo(e) {
         if (this.props.fastForwardFunc) {
-            let percent = parseInt((e.offsetX * 100) / e.currentTarget.clientWidth);
+            let percent = parseInt((e.nativeEvent.offsetX * 100) / e.currentTarget.clientWidth);
             let ts = parseInt((this.props.length * percent) / 100);
             this.props.fastForwardFunc(ts);
         }
@@ -549,7 +549,8 @@ export class Player extends React.Component {
             currentTsPost:  0,
             scale:          1,
             error:          null,
-            input:          ""
+            input:          "",
+            mark:           0,
         };
 
         this.containerHeight = 290;
@@ -599,6 +600,7 @@ export class Player extends React.Component {
 
         /* Move to beginning of recording */
         this.recTS = 0;
+        this.setState({currentTsPost: parseInt(this.recTS)});
         /* Start the playback time */
         this.locTS = performance.now();
 
@@ -773,6 +775,7 @@ export class Player extends React.Component {
 
             /* Send packet ts to the top */
             this.props.onTsChange(this.pkt.pos);
+            this.setState({currentTsPost: parseInt(this.pkt.pos)});
 
             /* Output the packet */
             if (this.pkt.is_io && !this.pkt.is_output) {
@@ -814,7 +817,7 @@ export class Player extends React.Component {
     }
 
     clearInputPlayer() {
-        this.setState({input: null});
+        this.setState({input: ""});
     }
 
     rewindToStart() {
@@ -969,6 +972,9 @@ export class Player extends React.Component {
         if (this.state.input != prevState.input) {
             scrollToBottom("input-textarea");
         }
+        if (prevProps.logsTs != this.props.logsTs) {
+            this.fastForwardToTS(this.props.logsTs);
+        }
     }
 
     render() {
@@ -1113,11 +1119,3 @@ export class Player extends React.Component {
         this.state.term.destroy();
     }
 }
-// let PropTypes = require('prop-types');
-// Player.propTypes = {
-//     matchList: React.PropTypes.array,
-//     // onTitleChanged: React.PropTypes.func
-// };
-
-// module.exports = { Player: Player };
-// export class Player;
