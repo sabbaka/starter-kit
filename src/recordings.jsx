@@ -535,8 +535,9 @@ class RecordingList extends React.Component {
         this.handleColumnClick = this.handleColumnClick.bind(this);
         this.getSortedList = this.getSortedList.bind(this);
         this.drawSortDir = this.drawSortDir.bind(this);
-        this.getColumnTitles = this.getColumnTitles.bind(this);
+        this.columnTitles = this.columnTitles.bind(this);
         this.getColumns = this.getColumns.bind(this);
+        this.sortColumnFields = [ "user", "start", "end", "duration" ];
         this.state = {
             sorting_field: "start",
             sorting_asc: true,
@@ -547,7 +548,7 @@ class RecordingList extends React.Component {
         $('#sort_arrow').remove();
         let type = this.state.sorting_asc ? "asc" : "desc";
         let arrow = '<i id="sort_arrow" class="fa fa-sort-' + type + '" aria-hidden="true"></i>';
-        $(this.refs[this.state.sorting_field]).append(arrow);
+        $([this.state.sorting_field]).append(arrow);
     }
 
     handleColumnClick(event) {
@@ -562,22 +563,8 @@ class RecordingList extends React.Component {
     }
 
     getSortedList() {
-        let field = this.state.sorting_field;
-        let asc = this.state.sorting_asc;
-        let list = this.props.list.slice();
-
-        if (this.state.sorting_field != null) {
-            if (asc) {
-                list.sort(function(a, b) {
-                    return a[field] > b[field];
-                });
-            } else {
-                list.sort(function(a, b) {
-                    return a[field] < b[field];
-                });
-            }
-        }
-
+        let list = this.props.list.concat();
+        list.sort((a, b) => String(a[this.state.sorting_field]).localeCompare(b[this.state.sorting_field]));
         return list;
     }
 
@@ -589,23 +576,14 @@ class RecordingList extends React.Component {
     }
 
     componentDidUpdate() {
+        console.log(this.state);
         this.drawSortDir();
     }
 
-    getColumnTitles() {
-        let columnTitles = [
-            (<div id="user" className="sort" onClick={this.handleColumnClick}><span>{_("User")}</span> <div
-                ref="user" className="sort-icon" /></div>),
-            (<div id="start" className="sort" onClick={this.handleColumnClick}><span>{_("Start")}</span> <div
-                ref="start" className="sort-icon" /></div>),
-            (<div id="end" className="sort" onClick={this.handleColumnClick}><span>{_("End")}</span> <div
-                ref="end" className="sort-icon" /></div>),
-            (<div id="duration" className="sort" onClick={this.handleColumnClick}><span>{_("Duration")}</span> <div
-                ref="duration" className="sort-icon" /></div>),
-        ];
+    columnTitles() {
+        let columnTitles = [_("User"), _("Start"), _("End"), _("Duration")];
         if (this.props.diff_hosts === true) {
-            columnTitles.push((<div id="hostname" className="sort" onClick={this.handleColumnClick}>
-                <span>{_("Hostname")}</span> <div ref="hostname" className="sort-icon" /></div>));
+            columnTitles.push(_("Hostname"));
         }
         return columnTitles;
     }
@@ -622,26 +600,43 @@ class RecordingList extends React.Component {
     }
 
     render() {
-        let columnTitles = this.getColumnTitles();
-        let list = this.getSortedList();
-        let rows = [];
+        let columnTitles = this.columnTitles();
 
-        for (let i = 0; i < list.length; i++) {
-            let r = list[i];
-            let columns = this.getColumns(r);
-            rows.push(<Listing.ListingRow
-                        key={r.id}
-                        rowId={r.id}
-                        columns={columns}
-                        navigateToItem={this.navigateToRecording.bind(this, r)} />);
+        let sessions = null;
+
+        let sortedList = this.props.list.concat();
+        // String(a[this.state.sorting_field]).localeCompare(b[this.state.sorting_field])
+        const asc = this.state.sorting_asc;
+        const field = this.state.sorting_field;
+        if (this.state.sorting_field != null) {
+            if (asc) {
+                sortedList.sort(function(a, b) {
+                    return a[field] > b[field];
+                });
+            } else {
+                sortedList.sort(function(a, b) {
+                    return a[field] < b[field];
+                });
+            }
         }
-        return (
+
+        sessions = (
             <Listing.Listing title={_("Sessions")}
                              columnTitles={columnTitles}
+                             columnTitleClick={ index => {
+                                 this.setState({ sorting_field: this.sortColumnFields[index] });
+                                 if (this.sortColumnFields[index] === this.state.sorting_field) {
+                                     this.setState({sorting_asc: !this.state.sorting_asc});
+                                 }
+                             }}
                              emptyCaption={_("No recorded sessions")}
                              fullWidth={false}>
-                {rows}
+                { sortedList.map(row => <Listing.ListingRow key={row.id} columns={[ row.user, row.start, row.end, row.duration ]} />) }
             </Listing.Listing>
+        );
+
+        return (
+            <div>{sessions}</div>
         );
     }
 }

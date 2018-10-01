@@ -321,7 +321,7 @@ export const Listing = (props) => {
                     let clickHandler = null;
                     if (props.columnTitleClick)
                         clickHandler = function() { props.columnTitleClick(index) };
-                    return <th key={index} onClick={clickHandler}>{title}</th>;
+                    return <th key={index} onClick={clickHandler} id={title}>{title}</th>;
                 }) }
             </tr>
         );
