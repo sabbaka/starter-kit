@@ -113,8 +113,8 @@ let parseDate = function(date) {
  * A component representing a date & time picker based on bootstrap-datetime-picker.
  * Requires jQuery, bootstrap-datetime-picker, moment.js
  * Properties:
- * - onDateChange: function to call on date change event of datepicker.
- * - date: variable to pass which will be used as initial value.
+ * - onChange: function to call on date change event of datepicker.
+ * - value: variable to pass which will be used as initial value.
  */
 class Datetimepicker extends React.Component {
     constructor(props) {
@@ -124,7 +124,6 @@ class Datetimepicker extends React.Component {
         this.state = {
             invalid: false,
             date: this.props.value,
-            dateLastValid: "",
         };
     }
 
@@ -135,11 +134,12 @@ class Datetimepicker extends React.Component {
             todayBtn: true,
         })
                 .on('changeDate', this.handleDateChange);
+        // remove datepicker from input, so it only works by button press
         $(this.refs.datepicker_input).datetimepicker('remove');
     }
 
     componentWillUnmount() {
-        $(this.textInput).datetimepicker('remove');
+        $(this.refs.datepicker).datetimepicker('remove');
     }
 
     handleDateChange() {
@@ -173,8 +173,6 @@ class Datetimepicker extends React.Component {
         );
     }
 }
-
-console.log(Datetimepicker);
 
 function LogElement(props) {
     const entry = props.entry;
