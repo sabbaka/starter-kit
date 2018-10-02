@@ -121,25 +121,26 @@ class Datetimepicker extends React.Component {
         super(props);
         this.handleDateChange = this.handleDateChange.bind(this);
         this.clearField = this.clearField.bind(this);
-        this.markDateField = this.markDateField.bind(this);
+        // this.markDateField = this.markDateField.bind(this);
         this.state = {
             invalid: false,
-            date: this.props.date,
+            date: this.props.value,
             dateLastValid: "",
         };
     }
 
     componentDidMount() {
-        let datepicker = $(this.refs.datepicker).datetimepicker({
+        // let datepicker = $(this.refs.datepicker).datetimepicker({
+        $(this.refs.datepicker).datetimepicker({
             format: 'yyyy-mm-dd hh:ii:00',
             autoclose: true,
             todayBtn: true,
         });
-        datepicker.on('changeDate', (e) => {
-            this.handleDateChange(e);
-        });
+        // datepicker.on('changeDate', (e) => {
+        //     this.handleDateChange(e);
+        // });
         $(this.refs.datepicker_input).datetimepicker('remove');
-        this.markDateField();
+        // this.markDateField();
     }
 
     componentWillUnmount() {
@@ -166,26 +167,40 @@ class Datetimepicker extends React.Component {
         //     }
         // }
         // console.log($(this.refs.datepicker_input).val());
-        const date = $(this.refs.datepicker_input).val();
-        this.setState({date: date});
-        this.markDateField();
+        // const date = $(this.refs.datepicker_input).val();
+        // this.markDateField();
+        let date = $(this.refs.datepicker_input).val()
+                .trim();
+        this.setState({invalid: false, date: date});
+        if (!parseDate(date)) {
+            this.setState({invalid: true});
+        } else {
+            this.props.onChange(date);
+        }
+        // } else {
+        //     // this.setState({dateLastValid: date});
+        //     this.setState({invalid: false, date: date});
+        //     this.props.onChange(date);
+        // }
     }
 
     clearField() {
         this.setState({date: "", invalid: false});
         $(this.refs.datepicker_input).val("");
     }
-
+    /*
     markDateField() {
         let date = $(this.refs.datepicker_input).val()
                 .trim();
         if (!parseDate(date)) {
             this.setState({invalid: true});
         } else {
-            this.setState({dateLastValid: date});
+            // this.setState({dateLastValid: date});
             this.setState({invalid: false});
+            this.props.onChange(this.state.date);
         }
     }
+    */
 
     render() {
         return (
@@ -662,6 +677,7 @@ class View extends React.Component {
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleTsChange = this.handleTsChange.bind(this);
         this.handleLogTsChange = this.handleLogTsChange.bind(this);
+        this.handleDateSinceChange = this.handleDateSinceChange.bind(this);
         /* Journalctl instance */
         this.journalctl = null;
         /* Recording ID journalctl instance is invoked with */
@@ -871,6 +887,12 @@ class View extends React.Component {
         cockpit.location.go([], $.extend(cockpit.location.options, state));
     }
 
+    handleDateSinceChange(date) {
+        console.log('test');
+        console.log(date);
+        cockpit.location.go([], $.extend(cockpit.location.options, {date_since: date}));
+    }
+
     handleTsChange(ts) {
         this.setState({curTs: ts});
     }
@@ -944,7 +966,7 @@ class View extends React.Component {
                                     </td>
                                     <td>
                                         {/* <input type="text" className="form-control" name="date_since" value={this.state.date_since} onChange={this.handleInputChange} /> */}
-                                        <Datetimepicker />
+                                        <Datetimepicker value={this.state.date_since} onChange={this.handleDateSinceChange} />
                                     </td>
                                     <td className="top">
                                         <label className="control-label" htmlFor="date_until">Until</label>
