@@ -846,9 +846,11 @@ class View extends React.Component {
     }
 
     handleDateSinceChange(date) {
-        console.log('test');
-        console.log(date);
         cockpit.location.go([], $.extend(cockpit.location.options, {date_since: date}));
+    }
+
+    handleDateUntilChange(date) {
+        cockpit.location.go([], $.extend(cockpit.location.options, {date_until: date}));
     }
 
     handleTsChange(ts) {
@@ -923,14 +925,13 @@ class View extends React.Component {
                                         <label className="control-label" htmlFor="date_since">Since</label>
                                     </td>
                                     <td>
-                                        {/* <input type="text" className="form-control" name="date_since" value={this.state.date_since} onChange={this.handleInputChange} /> */}
                                         <Datetimepicker value={this.state.date_since} onChange={this.handleDateSinceChange} />
                                     </td>
                                     <td className="top">
                                         <label className="control-label" htmlFor="date_until">Until</label>
                                     </td>
                                     <td>
-                                        <input type="text" className="form-control" name="date_until" value={this.state.date_until} onChange={this.handleInputChange} />
+                                        <Datetimepicker value={this.state.date_until} onChange={this.handleDateUntilChange} />
                                     </td>
                                     <td className="top">
                                         <label className="control-label" htmlFor="username">Username</label>
