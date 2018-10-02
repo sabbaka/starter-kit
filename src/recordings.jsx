@@ -125,7 +125,7 @@ class Datetimepicker extends React.Component {
         this.state = {
             invalid: false,
             date: this.props.date,
-            dateLastValid: null,
+            dateLastValid: "",
         };
     }
 
@@ -147,30 +147,33 @@ class Datetimepicker extends React.Component {
     }
 
     handleDateChange(e) {
-        if (e.type === "changeDate") {
-            let event = new Event('input', { bubbles: true });
-            e.currentTarget.firstChild.dispatchEvent(event);
-        }
-
-        if (e.type === "input") {
-            this.setState({date: e.target.value});
-            if (parseDate(e.target.value)) {
-                this.setState({dateLastValid: e.target.value});
-                this.setState({invalid: false});
-                this.props.onDateChange(e.target.value, e.target.value.trim());
-            } else {
-                this.setState({invalid: true});
-                this.props.onDateChange(e.target.value, this.state.dateLastValid.trim());
-            }
-        }
+        // console.log(e);
+        // console.log(this.state.invalid);
+        // if (e.type === "changeDate") {
+        //     let event = new Event('input', { bubbles: true });
+        //     e.currentTarget.firstChild.dispatchEvent(event);
+        // }
+        //
+        // if (e.type === "input") {
+        //     this.setState({date: e.target.value});
+        //     if (parseDate(e.target.value)) {
+        //         this.setState({dateLastValid: e.target.value});
+        //         this.setState({invalid: false});
+        //         this.props.onDateChange(e.target.value, e.target.value.trim());
+        //     } else {
+        //         this.setState({invalid: true});
+        //         this.props.onDateChange(e.target.value, this.state.dateLastValid.trim());
+        //     }
+        // }
+        // console.log($(this.refs.datepicker_input).val());
+        const date = $(this.refs.datepicker_input).val();
+        this.setState({date: date});
+        this.markDateField();
     }
 
     clearField() {
+        this.setState({date: "", invalid: false});
         $(this.refs.datepicker_input).val("");
-        let event = new Event('input', { bubbles: true });
-        this.refs.datepicker_input.dispatchEvent(event);
-        this.handleDateChange(event);
-        this.setState({invalid: false});
     }
 
     markDateField() {
@@ -189,7 +192,7 @@ class Datetimepicker extends React.Component {
             <div ref="datepicker" className="input-group date input-append date form_datetime">
                 <input ref="datepicker_input" type="text" size="16"
                     className={"form-control bootstrap-datepicker " + (this.state.invalid ? "invalid" : "valid")}
-                    readOnly value={this.state.date} onChange={this.handleDateChange} />
+                    value={this.state.date} onChange={this.handleDateChange} />
                 <span className="input-group-addon add-on"><i className="fa fa-calendar" /></span>
                 <span className="input-group-addon add-on" onClick={this.clearField}>
                     <i className="fa fa-remove" /></span>
@@ -940,7 +943,8 @@ class View extends React.Component {
                                         <label className="control-label" htmlFor="date_since">Since</label>
                                     </td>
                                     <td>
-                                        <input type="text" className="form-control" name="date_since" value={this.state.date_since} onChange={this.handleInputChange} />
+                                        {/* <input type="text" className="form-control" name="date_since" value={this.state.date_since} onChange={this.handleInputChange} /> */}
+                                        <Datetimepicker />
                                     </td>
                                     <td className="top">
                                         <label className="control-label" htmlFor="date_until">Until</label>
