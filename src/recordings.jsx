@@ -333,7 +333,7 @@ class Logs extends React.Component {
         this.getLogs();
     }
 
-    componentDidUpdate() {
+    componentDidMount() {
         if (this.props.recording) {
             if (this.start === null && this.end === null) {
                 this.end = this.props.recording.start + 3600;
@@ -341,15 +341,21 @@ class Logs extends React.Component {
                 this.earlier_than = this.props.recording.start;
             }
             this.getLogs();
-            if (this.props.curTs) {
-                const ts = this.props.curTs;
-                this.loadForTs(ts);
-            }
+        }
+    }
+
+    componentDidUpdate() {
+        if (this.props.curTs) {
+            const ts = this.props.curTs;
+            this.loadForTs(ts);
         }
     }
 
     render() {
-        if (this.props.recording) {
+        let r = this.props.recording;
+        if (r == null) {
+            return <span>Loading...</span>;
+        } else {
             return (
                 <div className="panel panel-default">
                     <div className="panel-heading">
@@ -363,8 +369,6 @@ class Logs extends React.Component {
                     </div>
                 </div>
             );
-        } else {
-            return (<div>Loading...</div>);
         }
     }
 }
