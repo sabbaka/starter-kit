@@ -370,7 +370,6 @@
         }
 
         setConfig(data) {
-            console.log(data);
             const config = {...data['session_recording']};
             this.setState(config);
         }
@@ -463,6 +462,47 @@
         }
     }
 
-    ReactDOM.render(<Config />, document.getElementById('sr_config'));
-    ReactDOM.render(<SssdConfig />, document.getElementById('sssd_config'));
+    class ConfigView extends React.Component {
+        render() {
+            const goBack = () => {
+                cockpit.jump(['session-recording']);
+            };
+
+            return (
+                <div className="container-fluid">
+                    <div className="row">
+                        <div className="col-md-12">
+                            <ol className="breadcrumb">
+                                <li><a onClick={goBack}>Session
+                                    Recording</a></li>
+                                <li className="active">Configuration</li>
+                            </ol>
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col-md-3">
+                            <div className="panel panel-default">
+                                <div className="panel-heading"><span>General Configuration</span></div>
+                                <div className="panel-body" id="sr_config">
+                                    <Config />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col-md-3">
+                            <div className="panel panel-default">
+                                <div className="panel-heading"><span>SSSD Configuration</span></div>
+                                <div className="panel-body" id="sssd_config">
+                                    <SssdConfig />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+    }
+
+    ReactDOM.render(<ConfigView />, document.getElementById('view'));
 }());
