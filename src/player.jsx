@@ -487,18 +487,19 @@ let ProgressBar = class extends React.Component {
     }
 };
 
-let InputPlayer = class extends React.Component {
+class InputPlayer extends React.Component {
     render() {
+        const input = String(this.props.input).replace(/(?:\r\n|\r|\n)/g, " ");
+
         return (
-            <textarea name="input" id="input-textarea" cols="30" rows="1" value={this.props.input} readOnly disabled />
+            <textarea name="input" id="input-textarea" cols="30" rows="1" value={input} readOnly disabled />
         );
     }
-};
+}
 
 export class Player extends React.Component {
     constructor(props) {
         super(props);
-
         this.handleTimeout = this.handleTimeout.bind(this);
         this.handlePacket = this.handlePacket.bind(this);
         this.handleError = this.handleError.bind(this);
