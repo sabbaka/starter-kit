@@ -24,7 +24,7 @@ let Term = require("term.js-cockpit");
 let Journal = require("journal");
 let $ = require("jquery");
 require("console.css");
-let slider = require("bootstrap-slider");
+require("bootstrap-slider");
 
 /*
  * Get an object field, verifying its presence and type.
