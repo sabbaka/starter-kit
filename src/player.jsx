@@ -24,7 +24,8 @@ let Term = require("term.js-cockpit");
 let Journal = require("journal");
 let $ = require("jquery");
 require("console.css");
-
+let slider = require("bootstrap-slider");
+console.log(slider);
 /*
  * Get an object field, verifying its presence and type.
  */
@@ -467,6 +468,8 @@ let ProgressBar = class extends React.Component {
     }
 
     jumpTo(e) {
+        console.log(e);
+        console.log(this.props);
         if (this.props.fastForwardFunc) {
             let percent = parseInt((e.nativeEvent.offsetX * 100) / e.currentTarget.clientWidth);
             let ts = parseInt((this.props.length * percent) / 100);
@@ -486,6 +489,45 @@ let ProgressBar = class extends React.Component {
         );
     }
 };
+
+class Slider extends React.Component {
+    constructor(props) {
+        super(props);
+        this.jumpTo = this.jumpTo.bind(this);
+        this.slider = null;
+    }
+
+    jumpTo(e) {
+        console.log(this.props.mark);
+        console.log(this.props.length);
+        console.log(e);
+        // console.log(this.props);
+        if (this.props.fastForwardFunc) {
+            this.props.fastForwardFunc(e);
+        }
+    }
+
+    componentDidMount() {
+        this.slider = $("#slider").slider({
+            enabled: false,
+            tooltip: "hide",
+        });
+        // this.slider.slider('setAttribute', 'tooltip', 'hide');
+        this.slider.slider('on', 'slideStop', this.jumpTo);
+    }
+
+    componentDidUpdate() {
+        this.slider.slider('enable');
+        this.slider.slider('setAttribute', 'max', this.props.length);
+        this.slider.slider('setValue', this.props.mark);
+    }
+
+    render () {
+        return (
+            <input id="slider" type="text" />
+        );
+    }
+}
 
 class InputPlayer extends React.Component {
     render() {
@@ -1014,12 +1056,14 @@ export class Player extends React.Component {
             'marginTop': '10px',
         };
 
-        const currentTsPost = function(currentTS, bufLength) {
+        const currentTsPostFunc = function(currentTS, bufLength) {
             if (currentTS > bufLength) {
                 return bufLength;
             }
             return currentTS;
         };
+
+        const currentTsPost = currentTsPostFunc(this.state.currentTsPost, this.buf.pos);
 
         let error = "";
         if (this.state.error) {
@@ -1096,8 +1140,9 @@ export class Player extends React.Component {
                                     <i className="fa fa-search-minus" aria-hidden="true" /></button>
                             </span>
                             <div style={progressbar_style}>
+                                <Slider length={this.buf.pos} mark={this.state.currentTsPost} fastForwardFunc={this.fastForwardToTS} />
                                 <ProgressBar length={this.buf.pos}
-                                    mark={currentTsPost(this.state.currentTsPost, this.buf.pos)}
+                                    mark={currentTsPost}
                                     fastForwardFunc={this.fastForwardToTS} />
                             </div>
                             <div id="input-player-wrap">
