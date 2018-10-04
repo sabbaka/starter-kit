@@ -464,31 +464,46 @@ let PacketBuffer = class {
 class Slider extends React.Component {
     constructor(props) {
         super(props);
-        this.jumpTo = this.jumpTo.bind(this);
+        this.slideStart = this.slideStart.bind(this);
+        this.slideStop = this.slideStop.bind(this);
         this.slider = null;
+        this.state = {
+            paused: false,
+        };
     }
 
-    jumpTo(e) {
+    slideStart(e) {
+        this.setState({paused: this.props.paused});
+        this.props.pause();
+    }
+
+    slideStop(e) {
         if (this.props.fastForwardFunc) {
             this.props.fastForwardFunc(e);
-            this.props.play();
+            if (this.state.paused === false) {
+                this.props.play();
+            }
         }
     }
 
     componentDidMount() {
         this.slider = $("#slider").slider({
+            value: 0,
             tooltip: "hide",
             enabled: false,
         });
-        this.slider.slider('disable');
-        this.slider.slider('on', 'slideStart', this.props.pause);
-        this.slider.slider('on', 'slideStop', this.jumpTo);
+        this.slider.slider('on', 'slideStart', this.slideStart);
+        this.slider.slider('on', 'slideStop', this.slideStop);
     }
 
     componentDidUpdate() {
-        this.slider.slider('enable');
-        this.slider.slider('setAttribute', 'max', this.props.length);
-        this.slider.slider('setValue', this.props.mark);
+        if (this.props.length) {
+            this.slider.slider('enable');
+            this.slider.slider('setAttribute', 'max', this.props.length);
+        }
+        if (this.props.mark) {
+            this.slider.slider('setValue', this.props.mark);
+        }
     }
 
     render () {
@@ -1057,7 +1072,7 @@ export class Player extends React.Component {
                             </div>
                         </div>
                         <div className="panel-footer">
-                            <Slider length={this.buf.pos} mark={this.state.currentTsPost} fastForwardFunc={this.fastForwardToTS} play={this.play} pause={this.pause} />
+                            <Slider length={this.buf.pos} mark={this.state.currentTsPost} fastForwardFunc={this.fastForwardToTS} play={this.play} pause={this.pause} paused={this.state.paused} />
                             <button title="Play/Pause - Hotkey: p" type="button" ref="playbtn"
                                     className="btn btn-default btn-lg margin-right-btn play-btn"
                                     onClick={this.playPauseToggle}>
