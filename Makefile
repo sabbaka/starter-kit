@@ -2,7 +2,7 @@
 PACKAGE_NAME := $(shell awk '/"name":/ {gsub(/[",]/, "", $$2); print $$2}' package.json)
 VERSION := $(shell T=$$(git describe 2>/dev/null) || T=1; echo $$T | tr '-' '.')
 ifeq ($(TEST_OS),)
-TEST_OS = centos-7
+TEST_OS = rhel-x
 endif
 export TEST_OS
 VM_IMAGE=$(CURDIR)/test/images/$(TEST_OS)
@@ -119,7 +119,8 @@ rpm: dist-gzip cockpit-$(PACKAGE_NAME).spec
 # build a VM with locally built rpm installed
 $(VM_IMAGE): rpm bots
 	rm -f $(VM_IMAGE) $(VM_IMAGE).qcow2
-	bots/image-customize -v -i cockpit -i `pwd`/cockpit-$(PACKAGE_NAME)-*.noarch.rpm -s $(CURDIR)/test/vm.install $(TEST_OS)
+	bots/image-customize -v -i cockpit -i `pwd`/cockpit-$(PACKAGE_NAME)-*.noarch.rpm -i tlog -i util-linux-user -s $(CURDIR)/test/vm.install $(TEST_OS) -r 'useradd test' -r 'echo test:foobar | chpasswd'
+	bots/image-customize -v -r 'echo /usr/bin/tlog-rec-session | chsh test' $(TEST_OS)
 
 # convenience target for the above
 vm: $(VM_IMAGE)
@@ -127,7 +128,7 @@ vm: $(VM_IMAGE)
 
 # run the browser integration tests; skip check for SELinux denials
 check: $(NODE_MODULES_TEST) $(VM_IMAGE) test/common
-	TEST_AUDIT_NO_SELINUX=1 test/check-application
+	TEST_AUDIT_NO_SELINUX=1 test/check-application -s
 
 # checkout Cockpit's bots/ directory for standard test VM images and API to launch them
 # must be from cockpit's master, as only that has current and existing images; but testvm.py API is stable
