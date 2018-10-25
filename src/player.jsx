@@ -103,9 +103,12 @@ let PacketBuffer = class {
         /* Error which stopped the loading */
         this.error = null;
         /* The journalctl reading the recording */
+        let options = {count: "all", follow: false};
+        if (window.localStorage["test_journal_remote"] === "on") {
+            options["directory"] = "/tmp/test_journal_remote/";
+        }
         this.journalctl = Journal.journalctl(
-            this.matchList,
-            {count: "all", follow: false});
+            this.matchList, options);
         this.journalctl.fail(this.handleError);
         this.journalctl.stream(this.handleStream);
         this.journalctl.done(this.handleDone);
@@ -451,10 +454,12 @@ let PacketBuffer = class {
             this.journalctl = null;
         }
         /* Continue with the "following" run  */
+        let options = {cursor: this.cursor, follow: true, count: "all"};
+        if (window.localStorage["test_journal_remote"] === "on") {
+            options["directory"] = "/tmp/test_journal_remote/";
+        }
         this.journalctl = Journal.journalctl(
-            this.matchList,
-            {cursor: this.cursor,
-             follow: true, count: "all"});
+            this.matchList, options);
         this.journalctl.fail(this.handleError);
         this.journalctl.stream(this.handleStream);
         /* NOTE: no "done" handler on purpose */
