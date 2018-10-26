@@ -119,10 +119,11 @@ rpm: dist-gzip cockpit-$(PACKAGE_NAME).spec
 # build a VM with locally built rpm installed
 $(VM_IMAGE): rpm bots
 	rm -f $(VM_IMAGE) $(VM_IMAGE).qcow2
-	bots/image-customize -v -i cockpit -i `pwd`/cockpit-$(PACKAGE_NAME)-*.noarch.rpm -s $(CURDIR)/test/vm.install $(TEST_OS)
+	bots/image-customize -v -i cockpit -i `pwd`/cockpit-$(PACKAGE_NAME)-*.noarch.rpm -i tlog -i systemd-journal-remote -s $(CURDIR)/test/vm.install $(TEST_OS)
 	bots/image-customize -v -r 'mkdir /tmp/test_journal_remote' $(TEST_OS)
 	bots/image-customize -v -u ./test.journal:/tmp/test_journal_remote/test.journal $(TEST_OS)
 	bots/image-customize -v -r 'chmod -R 777 /tmp/test_journal_remote' $(TEST_OS)
+	bots/image-customize -v -u ./test/files/1.journal:/var/log/journal/3572bf6f543d42a091a54bada3bae11e/1.journal $(TEST_OS)
 
 # convenience target for the above
 vm: $(VM_IMAGE)
@@ -142,7 +143,7 @@ bots:
 # checkout Cockpit's test API; this has no API stability guarantee, so check out a stable tag
 # when you start a new project, use the latest relese, and update it from time to time
 test/common:
-	git fetch --depth=1 https://github.com/cockpit-project/cockpit.git 179
+	git fetch --depth=1 https://github.com/cockpit-project/cockpit.git 180
 	git checkout --force FETCH_HEAD -- test/common
 	git reset test/common
 
