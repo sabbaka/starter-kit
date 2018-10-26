@@ -119,11 +119,14 @@ rpm: dist-gzip cockpit-$(PACKAGE_NAME).spec
 # build a VM with locally built rpm installed
 $(VM_IMAGE): rpm bots
 	rm -f $(VM_IMAGE) $(VM_IMAGE).qcow2
-	bots/image-customize -v -i cockpit -i `pwd`/cockpit-$(PACKAGE_NAME)-*.noarch.rpm -i tlog -i systemd-journal-remote -s $(CURDIR)/test/vm.install $(TEST_OS)
+	bots/image-customize -v -i cockpit -i `pwd`/cockpit-$(PACKAGE_NAME)-*.noarch.rpm -i tlog -i systemd-journal-remote -i util-linux-user -i expect -s $(CURDIR)/test/vm.install $(TEST_OS)
 	bots/image-customize -v -r 'mkdir /tmp/test_journal_remote' $(TEST_OS)
 	bots/image-customize -v -u ./test.journal:/tmp/test_journal_remote/test.journal $(TEST_OS)
 	bots/image-customize -v -r 'chmod -R 777 /tmp/test_journal_remote' $(TEST_OS)
 	bots/image-customize -v -u ./test/files/1.journal:/var/log/journal/3572bf6f543d42a091a54bada3bae11e/1.journal $(TEST_OS)
+	bots/image-customize -v -u ./test/files/ssh-login.sh:/root/ssh-login.sh $(TEST_OS)
+	bots/image-customize -v -u ./test/files/tlog_rec_session_test.sh:/root/tlog_rec_session_test.sh $(TEST_OS)
+	bots/image-customize -v -r 'sh /root/tlog_rec_session_test.sh' $(TEST_OS)
 
 # convenience target for the above
 vm: $(VM_IMAGE)
