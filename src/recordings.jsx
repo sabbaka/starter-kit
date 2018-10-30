@@ -682,8 +682,7 @@ class View extends React.Component {
                 }
 
                 r = {id:            id,
-                     matchList:     ["_UID=" + this.uid,
-                         "TLOG_REC=" + id],
+                     matchList:     ["TLOG_REC=" + id],
                      user:          e["TLOG_USER"],
                      boot_id:       e["_BOOT_ID"],
                      session_id:    parseInt(e["TLOG_SESSION"], 10),
@@ -693,6 +692,11 @@ class View extends React.Component {
                      end:       ts,
                      hostname:  e["_HOSTNAME"],
                      duration:  0};
+                if (window.localStorage["test_journal_remote"] === "on") {
+                    r.matchList.push("/usr/bin/tlog-rec-session");
+                } else {
+                    r.matchList.push("_UID=" + this.uid);
+                }
                 /* Map the recording */
                 this.recordingMap[id] = r;
                 /* Insert the recording in order */
@@ -735,7 +739,20 @@ class View extends React.Component {
      * Assumes journalctl is not running.
      */
     journalctlStart() {
-        let matches = ["_UID=" + this.uid];
+        let matches = [];
+
+        if (this.state.recordingID !== null) {
+            matches.push("TLOG_REC=" + this.state.recordingID);
+        }
+
+        if (window.localStorage["test_journal_remote"] === "on") {
+            matches.push("/usr/bin/tlog-rec-session");
+        } else {
+            matches.push("_UID=" + this.uid);
+        }
+
+        // let matches = ["_UID=" + this.uid];
+
         if (this.state.username && this.state.username !== "") {
             matches.push("TLOG_USER=" + this.state.username);
         }
@@ -745,16 +762,16 @@ class View extends React.Component {
 
         let options = {follow: true, count: "all"};
 
+        if (window.localStorage["test_journal_remote"] === "on") {
+            options["directory"] = "/tmp/test_journal_remote/";
+        }
+
         if (this.state.date_since && this.state.date_since !== "") {
             options['since'] = this.state.date_since;
         }
 
         if (this.state.date_until && this.state.date_until !== "") {
             options['until'] = this.state.date_until;
-        }
-
-        if (this.state.recordingID !== null) {
-            matches.push("TLOG_REC=" + this.state.recordingID);
         }
 
         this.journalctlRecordingID = this.state.recordingID;
