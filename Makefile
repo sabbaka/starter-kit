@@ -123,7 +123,7 @@ $(VM_IMAGE): rpm bots
 	bots/image-customize -v -r 'mkdir /tmp/test_journal_remote' $(TEST_OS)
 	bots/image-customize -v -u ./test.journal:/tmp/test_journal_remote/test.journal $(TEST_OS)
 	bots/image-customize -v -r 'chmod -R 777 /tmp/test_journal_remote' $(TEST_OS)
-	bots/image-customize -v -u ./test/files/1.journal:/var/log/journal/3572bf6f543d42a091a54bada3bae11e/1.journal $(TEST_OS)
+	bots/image-customize -v -u ./test/files/1.journal:/root/1.journal $(TEST_OS)
 	bots/image-customize -v -u ./test/files/ssh-login.sh:/root/ssh-login.sh $(TEST_OS)
 	bots/image-customize -v -u ./test/files/tlog_rec_session_test.sh:/root/tlog_rec_session_test.sh $(TEST_OS)
 	bots/image-customize -v -r 'sh /root/tlog_rec_session_test.sh' $(TEST_OS)

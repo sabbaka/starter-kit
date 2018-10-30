@@ -17,10 +17,65 @@ import testlib
 
 
 class TestApplication(testlib.MachineCase):
+    Test with pre-recorded journal with tlog UID 981
+    def testPlayRecord(self):
+        b = self.browser
+        m = self.machine
+        self.login_and_go("/session-recording")
+        b.wait_present(".content-header-extra")
+        b.eval_js('window.localStorage["test_journal_remote"] = "off"')
+        #m.execute('sh /root/tlog_rec_session_test.sh')
+        b.reload()
+        b.enter_page("/session-recording")
+        b.wait_present("#user")
+        b.click(".listing-ct-item")
+        b.wait_present("button.margin-right-btn:nth-child(3)")
+        b.click("button.margin-right-btn:nth-child(3)")
+        b.wait_timeout(15000)
+        b.wait_present(".fa-pause")
+        b.click("button.margin-right-btn:nth-child(3)")
+        b.snapshot('play-default')
+        m.execute('sdfgsdgsdgsdg')
+
+    # Test with pre-recorded journal with tlog UID 981
+    def testSkipFrameRecord(self):
+        b = self.browser
+        m = self.machine
+        self.login_and_go("/session-recording")
+        b.wait_present(".content-header-extra")
+        b.eval_js('window.localStorage["test_journal_remote"] = "off"')
+        # m.execute("useradd rhuser")
+        m.execute("echo rhuser:1 | chpasswd")
+        m.execute("echo /usr/bin/tlog-rec-session | chsh rhuser")
+        m.execute('expect /root/ssh-login.sh 1 ssh rhuser@127.0.0.1 "echo test1; echo test2; exit"')
+        m.execute('sdfgsdgsdgsdg')
+        b.reload()
+        b.enter_page("/session-recording")
+        b.wait_present("#user")
+        b.click(".listing-ct-item")
+        b.wait_present("button.margin-right-btn:nth-child(3)")
+        b.wait_present("button.margin-right-btn:nth-child(4)")
+        b.click("button.margin-right-btn:nth-child(4)")
+        b.wait_timeout(1000)
+        b.wait_present("button.margin-right-btn:nth-child(4)")
+        b.click("button.margin-right-btn:nth-child(4)")
+        b.wait_timeout(1000)
+        b.wait_present("button.margin-right-btn:nth-child(4)")
+        b.click("button.margin-right-btn:nth-child(4)")
+        b.wait_timeout(1000)
+        b.wait_present("button.margin-right-btn:nth-child(4)")
+        b.click("button.margin-right-btn:nth-child(4)")
+        b.wait_timeout(1000)
+        b.wait_present("button.margin-right-btn:nth-child(4)")
+        b.click("button.margin-right-btn:nth-child(4)")
+        b.wait_timeout(1000)
+        b.snapshot('play-default')
+
     # Test with pre-recorded journal with tlog UID 981
     def testPlayDefault(self):
         b = self.browser
         m = self.machine
+        m.execute("cp /root/1.journal /var/log/journal/")
         self.login_and_go("/session-recording")
         b.wait_present(".content-header-extra")
         b.wait_present("#user")
@@ -31,11 +86,13 @@ class TestApplication(testlib.MachineCase):
         b.wait_present(".fa-pause")
         b.click("button.margin-right-btn:nth-child(3)")
         b.snapshot('play-default')
+        m.execute("rm -rf /var/log/journal/1.journal")
 
     # Test with pre-recorded journal with tlog UID 981
     def testSkipFrameDefault(self):
         b = self.browser
         m = self.machine
+        m.execute("cp /root/1.journal /var/log/journal/")
         self.login_and_go("/session-recording")
         b.wait_present(".content-header-extra")
         b.wait_present("#user")
@@ -57,6 +114,7 @@ class TestApplication(testlib.MachineCase):
         b.click("button.margin-right-btn:nth-child(4)")
         b.wait_timeout(1000)
         b.snapshot('play-default')
+        m.execute("rm -rf /var/log/journal/1.journal")
 
     # Test changing journal directory
     def testPlay(self):
