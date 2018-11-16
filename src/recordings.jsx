@@ -238,6 +238,7 @@ class Logs extends React.Component {
         this.entries = [];
         this.start = null;
         this.end = null;
+        this.hostname = null;
         this.earlier_than = null;
         this.state = {
             cursor: null,
@@ -282,6 +283,9 @@ class Logs extends React.Component {
             }
 
             let matches = [];
+            if (this.hostname) {
+                matches.push("_HOSTNAME=" + this.hostname);
+            }
 
             let options = {
                 since: formatDateTime(this.start),
@@ -321,6 +325,9 @@ class Logs extends React.Component {
                 this.end = this.props.recording.start + 3600;
                 this.start = this.props.recording.start;
                 this.earlier_than = this.props.recording.start;
+            }
+            if (this.props.recording.hostname) {
+                this.hostname = this.props.recording.hostname;
             }
             this.getLogs();
         }
@@ -735,7 +742,7 @@ class View extends React.Component {
      * Assumes journalctl is not running.
      */
     journalctlStart() {
-        let matches = ["_UID=" + this.uid];
+        let matches = ["_UID=" + this.uid, "+", "_EXE=/usr/bin/tlog-rec-session", "+", "_EXE=/usr/bin/tlog-rec", "+", "SYSLOG_IDENTIFIER=\"-tlog-rec-session\""];
         if (this.state.username && this.state.username !== "") {
             matches.push("TLOG_USER=" + this.state.username);
         }
