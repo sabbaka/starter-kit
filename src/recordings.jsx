@@ -423,6 +423,7 @@ class Recording extends React.Component {
                     ref="player"
                     matchList={this.props.recording.matchList}
                     logsTs={this.props.logsTs}
+                    search={this.props.search}
                     onTsChange={this.props.onTsChange} />);
 
             return (
@@ -648,6 +649,7 @@ class View extends React.Component {
             date_until: cockpit.location.options.date_until || "",
             username: cockpit.location.options.username || "",
             hostname: cockpit.location.options.hostname || "",
+            search: cockpit.location.options.search || "",
             /* filter values end */
             error_tlog_uid: false,
             diff_hosts: false,
@@ -674,6 +676,7 @@ class View extends React.Component {
             date_until: cockpit.location.options.date_until || "",
             username: cockpit.location.options.username || "",
             hostname: cockpit.location.options.hostname || "",
+            search: cockpit.location.options.search || "",
         });
     }
 
@@ -766,7 +769,7 @@ class View extends React.Component {
      * Assumes journalctl is not running.
      */
     journalctlStart() {
-        let matches = ["_UID=" + this.uid, "+", "_EXE=/usr/bin/tlog-rec-session", "+", "_EXE=/usr/bin/tlog-rec", "+", "SYSLOG_IDENTIFIER=\"-tlog-rec-session\""];
+        let matches = ["_UID=" + this.uid, "+", "_EXE=/usr/bin/tlog-rec-session", "+", "_EXE=/usr/bin/tlog-rec", "+", "SYSLOG_IDENTIFIER=-tlog-rec-session"];
         if (this.state.username && this.state.username !== "") {
             matches.push("TLOG_USER=" + this.state.username);
         }
@@ -784,7 +787,12 @@ class View extends React.Component {
             options['until'] = this.state.date_until;
         }
 
+        if (this.state.search && this.state.search !== "" && this.state.recordingID === null) {
+            options["grep"] = this.state.search;
+        }
+
         if (this.state.recordingID !== null) {
+            delete options["grep"];
             matches.push("TLOG_REC=" + this.state.recordingID);
         }
 
@@ -897,7 +905,8 @@ class View extends React.Component {
         if (this.state.date_since !== prevState.date_since ||
             this.state.date_until !== prevState.date_until ||
             this.state.username !== prevState.username ||
-            this.state.hostname !== prevState.hostname
+            this.state.hostname !== prevState.hostname ||
+            this.state.search !== prevState.search
         ) {
             this.clearRecordings();
             this.journalctlRestart();
@@ -932,7 +941,16 @@ class View extends React.Component {
                                         <Datetimepicker value={this.state.date_until} onChange={this.handleDateUntilChange} />
                                     </td>
                                     <td className="top">
-                                        <label className="control-label" htmlFor="username">{_("Username")}</label>
+                                        <label className="control-label" htmlFor="search">Search</label>
+                                    </td>
+                                    <td>
+                                        <div className="input-group">
+                                            <input type="text" className="form-control" name="search" value={this.state.search}
+                                                   onChange={this.handleInputChange} />
+                                        </div>
+                                    </td>
+                                    <td className="top">
+                                        <label className="control-label" htmlFor="username">Username</label>
                                     </td>
                                     <td>
                                         <div className="input-group">
@@ -975,7 +993,7 @@ class View extends React.Component {
         } else {
             return (
                 <React.Fragment>
-                    <Recording recording={this.recordingMap[this.state.recordingID]} onTsChange={this.handleTsChange} logsTs={this.state.logsTs} />
+                    <Recording recording={this.recordingMap[this.state.recordingID]} onTsChange={this.handleTsChange} logsTs={this.state.logsTs} search={this.state.search} />
                     <div className="container-fluid">
                         <div className="row">
                             <div className="col-md-12">
