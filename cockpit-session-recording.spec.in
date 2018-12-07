@@ -8,7 +8,7 @@ Source: cockpit-session-recording-%{version}.tar.gz
 BuildArch: noarch
 
 Requires: cockpit-system
-Requires: tlog
+Recommends: tlog
 
 %define debug_package %{nil}
 

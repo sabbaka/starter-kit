@@ -289,7 +289,7 @@ a.disabled {
     border-bottom: 1px solid #ddd;
     padding: 10px 20px;
     width: 100%;
-    position: fixed;
+    /*position: fixed;*/
     z-index: 900;
     top: 0;
 }

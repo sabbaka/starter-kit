@@ -605,8 +605,7 @@ class RecordingList extends React.Component {
                         navigateToItem={this.navigateToRecording.bind(this, r)} />);
         }
         return (
-            <Listing.Listing title={_("Sessions")}
-                             columnTitles={columnTitles}
+            <Listing.Listing columnTitles={columnTitles}
                              emptyCaption={_("No recorded sessions")}
                              fullWidth={false}>
                 {rows}
@@ -905,10 +904,14 @@ class View extends React.Component {
     }
 
     render() {
+        let no_tlog_installed;
         if (this.state.error_tlog_uid === true) {
-            return (
-                <div className="container-fluid">
-                    Error getting tlog UID from system.
+            no_tlog_installed = (
+                <div className="alert alert-warning alert-dismissable" >
+                    <button type="button" className="close" data-dismiss="alert" aria-hidden="true">
+                        <span className="pficon pficon-close" />
+                    </button>
+                    {_("Error getting tlog UID from system.")}
                 </div>
             );
         }
@@ -963,6 +966,7 @@ class View extends React.Component {
                             </thead>
                         </table>
                     </div>
+                    {no_tlog_installed}
                     <RecordingList
                         date_since={this.state.date_since}
                         date_until={this.state.date_until}
