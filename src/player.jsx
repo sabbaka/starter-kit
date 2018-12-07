@@ -26,25 +26,47 @@ let $ = require("jquery");
 require("console.css");
 require("bootstrap-slider");
 
-/*
- * Get an object field, verifying its presence and type.
- */
-let getValidField = function (object, field, type) {
-    let value;
-    if (!(field in object)) {
-        throw Error("\"" + field + "\" field is missing");
-    }
-    value = object[field];
-    if (typeof (value) != typeof (type)) {
-        throw Error("invalid \"" + field + "\" field type: " + typeof (value));
-    }
-    return value;
-};
-
 let scrollToBottom = function(id) {
     const el = document.getElementById(id);
     if (el) {
         el.scrollTop = el.scrollHeight;
+    }
+};
+
+function ErrorList(props) {
+    let list = [];
+
+    if (props.list) {
+        list = props.list.map((message, key) => { return <ErrorItem key={key} message={message} /> });
+    }
+
+    return (
+        <React.Fragment>
+            {list}
+        </React.Fragment>
+    );
+}
+
+function ErrorItem(props) {
+    return (
+        <div className="alert alert-danger alert-dismissable" >
+            <button type="button" className="close" data-dismiss="alert" aria-hidden="true">
+                <span className="pficon pficon-close" />
+            </button>
+            <span className="pficon pficon-error-circle-o" />
+            {props.message}
+        </div>
+    );
+}
+
+let ErrorService = class {
+    constructor() {
+        this.addMessage = this.addMessage.bind(this);
+        this.errors = [];
+    }
+
+    addMessage(message) {
+        this.errors.push(message);
     }
 };
 
@@ -55,10 +77,11 @@ let PacketBuffer = class {
     /*
      * Initialize a buffer.
      */
-    constructor(matchList) {
+    constructor(matchList, reportError) {
         this.handleError = this.handleError.bind(this);
         this.handleStream = this.handleStream.bind(this);
         this.handleDone = this.handleDone.bind(this);
+        this.getValidField = this.getValidField.bind(this);
         /* RegExp used to parse message's timing field */
         this.timingRE = new RegExp(
             /* Delay (1) */
@@ -81,6 +104,7 @@ let PacketBuffer = class {
         );
         /* List of matches to apply when loading the buffer from Journal */
         this.matchList = matchList;
+        this.reportError = reportError;
         /*
          * An array of two-element arrays (tuples) each containing a
          * packet index and a deferred object. The list is kept sorted to
@@ -117,6 +141,21 @@ let PacketBuffer = class {
         this.cursor = null;
         /* True if the first, non-follow, journalctl run has completed */
         this.done = false;
+    }
+
+    /*
+     * Get an object field, verifying its presence and type.
+     */
+    getValidField(object, field, type) {
+        let value;
+        if (!(field in object)) {
+            this.reportError("\"" + field + "\" field is missing");
+        }
+        value = object[field];
+        if (typeof (value) != typeof (type)) {
+            this.reportError("invalid \"" + field + "\" field type: " + typeof (value));
+        }
+        return value;
     }
 
     /*
@@ -235,6 +274,7 @@ let PacketBuffer = class {
             this.idxDfdList[i][1].reject(error);
         }
         this.idxDfdList = [];
+        this.reportError(error);
     }
 
     /*
@@ -257,7 +297,7 @@ let PacketBuffer = class {
             /* Match next timing entry */
             matches = this.timingRE.exec(timing);
             if (matches === null) {
-                throw Error("invalid timing string");
+                this.reportError(_("invalid timing string"));
             } else if (matches[0] == "") {
                 break;
             }
@@ -297,7 +337,7 @@ let PacketBuffer = class {
                 /* Add (replacement) input characters */
                 s = in_txt.slice(in_txt_pos, in_txt_pos += x);
                 if (s.length != x) {
-                    throw Error("timing entry out of input bounds");
+                    this.reportError(_("timing entry out of input bounds"));
                 }
                 io.push(s);
                 break;
@@ -319,7 +359,7 @@ let PacketBuffer = class {
                 /* Add (replacement) output characters */
                 s = out_txt.slice(out_txt_pos, out_txt_pos += x);
                 if (s.length != x) {
-                    throw Error("timing entry out of output bounds");
+                    this.reportError(_("timing entry out of output bounds"));
                 }
                 io.push(s);
                 break;
@@ -348,10 +388,10 @@ let PacketBuffer = class {
         }
 
         if (in_txt_pos < in_txt.length) {
-            throw Error("extra input present");
+            this.reportError(_("extra input present"));
         }
         if (out_txt_pos < out_txt.length) {
-            throw Error("extra output present");
+            this.reportError(_("extra output present"));
         }
 
         if (io.length > 0) {
@@ -375,24 +415,24 @@ let PacketBuffer = class {
         const string = String();
 
         /* Check version */
-        ver = getValidField(message, "ver", string);
+        ver = this.getValidField(message, "ver", string);
         matches = ver.match("^(\\d+)\\.(\\d+)$");
         if (matches === null || matches[1] > 2) {
-            throw Error("\"ver\" field has invalid value: " + ver);
+            this.reportError("\"ver\" field has invalid value: " + ver);
         }
 
         /* TODO Perhaps check host, rec, user, term, and session fields */
 
         /* Extract message ID */
-        id = getValidField(message, "id", number);
+        id = this.getValidField(message, "id", number);
         if (id <= this.id) {
-            throw Error("out of order \"id\" field value: " + id);
+            this.reportError("out of order \"id\" field value: " + id);
         }
 
         /* Extract message time position */
-        pos = getValidField(message, "pos", number);
+        pos = this.getValidField(message, "pos", number);
         if (pos < this.message_pos) {
-            throw Error("out of order \"pos\" field value: " + pos);
+            this.reportError("out of order \"pos\" field value: " + pos);
         }
 
         /* Update last received message ID and time position */
@@ -401,9 +441,9 @@ let PacketBuffer = class {
 
         /* Parse message data */
         this.parseMessageData(
-            getValidField(message, "timing", string),
-            getValidField(message, "in_txt", string),
-            getValidField(message, "out_txt", string));
+            this.getValidField(message, "timing", string),
+            this.getValidField(message, "in_txt", string),
+            this.getValidField(message, "out_txt", string));
     }
 
     /*
@@ -573,7 +613,6 @@ export class Player extends React.Component {
             containerWidth: 630,
             currentTsPost:  0,
             scale:          1,
-            error:          null,
             input:          "",
             mark:           0,
         };
@@ -581,7 +620,9 @@ export class Player extends React.Component {
         this.containerHeight = 290;
 
         /* Auto-loading buffer of recording's packets */
-        this.buf = new PacketBuffer(this.props.matchList);
+        this.error_service = new ErrorService();
+        this.reportError = this.error_service.addMessage;
+        this.buf = new PacketBuffer(this.props.matchList, this.reportError);
 
         /* Current recording time, ms */
         this.recTS = 0;
@@ -655,7 +696,7 @@ export class Player extends React.Component {
     /* Handle packet retrieval error */
     handleError(error) {
         if (error !== null) {
-            this.setState({error: error});
+            this.reportError(error);
             console.warn(error);
         }
     }
@@ -1046,18 +1087,6 @@ export class Player extends React.Component {
             "float": "right",
         };
 
-        let error = "";
-        if (this.state.error) {
-            error = (
-                <div className="alert alert-danger alert-dismissable" >
-                    <button type="button" className="close" data-dismiss="alert" aria-hidden="true">
-                        <span className="pficon pficon-close" />
-                    </button>
-                    <span className="pficon pficon-error-circle-o" />
-                    {this.state.error}.
-                </div>);
-        }
-
         // ensure react never reuses this div by keying it with the terminal widget
         return (
             <div id="recording-wrap">
@@ -1124,8 +1153,8 @@ export class Player extends React.Component {
                             <div id="input-player-wrap">
                                 <InputPlayer input={this.state.input} />
                             </div>
+                            <ErrorList list={this.error_service.errors} />
                         </div>
-                        {error}
                     </div>
                 </div>
             </div>
