@@ -20,11 +20,52 @@
 import React from 'react';
 let cockpit = require("cockpit");
 let _ = cockpit.gettext;
+let moment = require("moment");
 let Term = require("term.js-cockpit");
 let Journal = require("journal");
 let $ = require("jquery");
 require("console.css");
 require("bootstrap-slider");
+
+let padInt = function (n, w) {
+    let i = Math.floor(n);
+    let a = Math.abs(i);
+    let s = a.toString();
+    for (w -= s.length; w > 0; w--) {
+        s = '0' + s;
+    }
+    return ((i < 0) ? '-' : '') + s;
+};
+
+let formatDateTime = function (ms) {
+    return moment(ms).format("YYYY-MM-DD HH:mm:ss");
+};
+
+/*
+ * Format a time interval from a number of milliseconds.
+ */
+let formatDuration = function (ms) {
+    let v = Math.floor(ms / 1000);
+    let s = Math.floor(v % 60);
+    v = Math.floor(v / 60);
+    let m = Math.floor(v % 60);
+    v = Math.floor(v / 60);
+    let h = Math.floor(v % 24);
+    let d = Math.floor(v / 24);
+    let str = '';
+
+    if (d > 0) {
+        str += d + ' ' + _("days") + ' ';
+    }
+
+    if (h > 0 || str.length > 0) {
+        str += padInt(h, 2) + ':';
+    }
+
+    str += padInt(m, 2) + ':' + padInt(s, 2);
+
+    return (ms < 0 ? '-' : '') + str;
+};
 
 let scrollToBottom = function(id) {
     const el = document.getElementById(id);
@@ -1144,6 +1185,8 @@ export class Player extends React.Component {
     }
 
     render() {
+        let r = this.props.recording;
+
         let speedExp = this.state.speedExp;
         let speedFactor = Math.pow(2, Math.abs(speedExp));
         let speedStr;
@@ -1181,76 +1224,136 @@ export class Player extends React.Component {
         // ensure react never reuses this div by keying it with the terminal widget
         return (
             <React.Fragment>
-                <div id="recording-wrap">
-                    <div className="col-md-6 player-wrap">
-                        <div ref="wrapper" className="panel panel-default">
+                <div className="row">
+                    <div id="recording-wrap">
+                        <div className="col-md-6 player-wrap">
+                            <div ref="wrapper" className="panel panel-default">
+                                <div className="panel-heading">
+                                    <span>{this.state.title}</span>
+                                </div>
+                                <div className="panel-body">
+                                    <div className={(this.state.drag_pan ? "dragnpan" : "")} style={scrollwrap} ref="scrollwrap">
+                                        <div ref="term" className="console-ct" key={this.state.term} style={style} />
+                                    </div>
+                                </div>
+                                <div className="panel-footer">
+                                    <Slider length={this.buf.pos} mark={this.state.currentTsPost} fastForwardFunc={this.fastForwardToTS} play={this.play} pause={this.pause} paused={this.state.paused} />
+                                    <button title="Play/Pause - Hotkey: p" type="button" ref="playbtn"
+                                            className="btn btn-default btn-lg margin-right-btn play-btn"
+                                            onClick={this.playPauseToggle}>
+                                        <i className={"fa fa-" + (this.state.paused ? "play" : "pause")}
+                                           aria-hidden="true" />
+                                    </button>
+                                    <button title="Skip Frame - Hotkey: ." type="button"
+                                            className="btn btn-default btn-lg margin-right-btn"
+                                            onClick={this.skipFrame}>
+                                        <i className="fa fa-step-forward" aria-hidden="true" />
+                                    </button>
+                                    <button title="Restart Playback - Hotkey: Shift-R" type="button"
+                                            className="btn btn-default btn-lg" onClick={this.rewindToStart}>
+                                        <i className="fa fa-fast-backward" aria-hidden="true" />
+                                    </button>
+                                    <button title="Fast-forward to end - Hotkey: Shift-G" type="button"
+                                            className="btn btn-default btn-lg margin-right-btn"
+                                            onClick={this.fastForwardToEnd}>
+                                        <i className="fa fa-fast-forward" aria-hidden="true" />
+                                    </button>
+                                    <button title="Speed /2 - Hotkey: {" type="button"
+                                            className="btn btn-default btn-lg" onClick={this.speedDown}>
+                                        /2
+                                    </button>
+                                    <button title="Reset Speed - Hotkey: Backspace" type="button"
+                                            className="btn btn-default btn-lg" onClick={this.speedReset}>
+                                        1:1
+                                    </button>
+                                    <button title="Speed x2 - Hotkey: }" type="button"
+                                            className="btn btn-default btn-lg margin-right-btn"
+                                            onClick={this.speedUp}>
+                                        x2
+                                    </button>
+                                    <span>{speedStr}</span>
+                                    <span style={to_right}>
+                                        <button title="Drag'n'Pan" type="button" className="btn btn-default btn-lg"
+                                            onClick={this.dragPan}>
+                                            <i className={"fa fa-" + (this.state.drag_pan ? "hand-rock-o" : "hand-paper-o")}
+                                                aria-hidden="true" /></button>
+                                        <button title="Zoom In - Hotkey: =" type="button" className="btn btn-default btn-lg"
+                                            onClick={this.zoomIn} disabled={this.state.term_zoom_max}>
+                                            <i className="fa fa-search-plus" aria-hidden="true" /></button>
+                                        <button title="Fit To - Hotkey: Z" type="button" className="btn btn-default btn-lg"
+                                            onClick={this.fitTo}><i className="fa fa-expand" aria-hidden="true" /></button>
+                                        <button title="Zoom Out - Hotkey: -" type="button" className="btn btn-default btn-lg"
+                                            onClick={this.zoomOut} disabled={this.state.term_zoom_min}>
+                                            <i className="fa fa-search-minus" aria-hidden="true" /></button>
+                                    </span>
+                                    <div id="input-player-wrap">
+                                        <InputPlayer input={this.state.input} />
+                                    </div>
+                                    <ErrorList list={this.error_service.errors} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-md-3">
+                        <div className="panel panel-default">
                             <div className="panel-heading">
-                                <span>{this.state.title}</span>
+                                <span>{_("Recording")}</span>
                             </div>
                             <div className="panel-body">
-                                <div className={(this.state.drag_pan ? "dragnpan" : "")} style={scrollwrap} ref="scrollwrap">
-                                    <div ref="term" className="console-ct" key={this.state.term} style={style} />
-                                </div>
+                                <table className="form-table-ct">
+                                    <tbody>
+                                        <tr>
+                                            <td>{_("ID")}</td>
+                                            <td>{r.id}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>{_("Hostname")}</td>
+                                            <td>{r.hostname}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>{_("Boot ID")}</td>
+                                            <td>{r.boot_id}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>{_("Session ID")}</td>
+                                            <td>{r.session_id}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>{_("PID")}</td>
+                                            <td>{r.pid}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>{_("Start")}</td>
+                                            <td>{formatDateTime(r.start)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>{_("End")}</td>
+                                            <td>{formatDateTime(r.end)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>{_("Duration")}</td>
+                                            <td>{formatDuration(r.end - r.start)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>{_("User")}</td>
+                                            <td>{r.user}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
-                            <div className="panel-footer">
-                                <Slider length={this.buf.pos} mark={this.state.currentTsPost} fastForwardFunc={this.fastForwardToTS} play={this.play} pause={this.pause} paused={this.state.paused} />
-                                <button title="Play/Pause - Hotkey: p" type="button" ref="playbtn"
-                                        className="btn btn-default btn-lg margin-right-btn play-btn"
-                                        onClick={this.playPauseToggle}>
-                                    <i className={"fa fa-" + (this.state.paused ? "play" : "pause")}
-                                       aria-hidden="true" />
-                                </button>
-                                <button title="Skip Frame - Hotkey: ." type="button"
-                                        className="btn btn-default btn-lg margin-right-btn"
-                                        onClick={this.skipFrame}>
-                                    <i className="fa fa-step-forward" aria-hidden="true" />
-                                </button>
-                                <button title="Restart Playback - Hotkey: Shift-R" type="button"
-                                        className="btn btn-default btn-lg" onClick={this.rewindToStart}>
-                                    <i className="fa fa-fast-backward" aria-hidden="true" />
-                                </button>
-                                <button title="Fast-forward to end - Hotkey: Shift-G" type="button"
-                                        className="btn btn-default btn-lg margin-right-btn"
-                                        onClick={this.fastForwardToEnd}>
-                                    <i className="fa fa-fast-forward" aria-hidden="true" />
-                                </button>
-                                <button title="Speed /2 - Hotkey: {" type="button"
-                                        className="btn btn-default btn-lg" onClick={this.speedDown}>
-                                    /2
-                                </button>
-                                <button title="Reset Speed - Hotkey: Backspace" type="button"
-                                        className="btn btn-default btn-lg" onClick={this.speedReset}>
-                                    1:1
-                                </button>
-                                <button title="Speed x2 - Hotkey: }" type="button"
-                                        className="btn btn-default btn-lg margin-right-btn"
-                                        onClick={this.speedUp}>
-                                    x2
-                                </button>
-                                <span>{speedStr}</span>
-                                <span style={to_right}>
-                                    <button title="Drag'n'Pan" type="button" className="btn btn-default btn-lg"
-                                        onClick={this.dragPan}>
-                                        <i className={"fa fa-" + (this.state.drag_pan ? "hand-rock-o" : "hand-paper-o")}
-                                            aria-hidden="true" /></button>
-                                    <button title="Zoom In - Hotkey: =" type="button" className="btn btn-default btn-lg"
-                                        onClick={this.zoomIn} disabled={this.state.term_zoom_max}>
-                                        <i className="fa fa-search-plus" aria-hidden="true" /></button>
-                                    <button title="Fit To - Hotkey: Z" type="button" className="btn btn-default btn-lg"
-                                        onClick={this.fitTo}><i className="fa fa-expand" aria-hidden="true" /></button>
-                                    <button title="Zoom Out - Hotkey: -" type="button" className="btn btn-default btn-lg"
-                                        onClick={this.zoomOut} disabled={this.state.term_zoom_min}>
-                                        <i className="fa fa-search-minus" aria-hidden="true" /></button>
-                                </span>
-                                <div id="input-player-wrap">
-                                    <InputPlayer input={this.state.input} />
-                                </div>
-                                <ErrorList list={this.error_service.errors} />
+                        </div>
+                    </div>
+                    <div className="col-md-3">
+                        <div className="panel panel-default">
+                            <div className="panel-heading">
+                                <span>{_("Search")}</span>
+                            </div>
+                            <div className="panel-body">
+                                <Search matchList={this.props.matchList} fastForwardToTS={this.fastForwardToTS} play={this.play} pause={this.pause} paused={this.state.paused} />
                             </div>
                         </div>
                     </div>
                 </div>
-                <Search matchList={this.props.matchList} fastForwardToTS={this.fastForwardToTS} play={this.play} pause={this.pause} paused={this.state.paused} />
             </React.Fragment>
         );
     }

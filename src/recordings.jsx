@@ -421,7 +421,8 @@ class Recording extends React.Component {
                     matchList={this.props.recording.matchList}
                     logsTs={this.props.logsTs}
                     search={this.props.search}
-                    onTsChange={this.props.onTsChange} />);
+                    onTsChange={this.props.onTsChange}
+                    recording={r} />);
 
             return (
                 <div className="container-fluid">
@@ -433,58 +434,7 @@ class Recording extends React.Component {
                             </ol>
                         </div>
                     </div>
-                    <div className="row">
-                        {player}
-                        <div className="col-md-6">
-                            <div className="panel panel-default">
-                                <div className="panel-heading">
-                                    <span>{_("Recording")}</span>
-                                </div>
-                                <div className="panel-body">
-                                    <table className="form-table-ct">
-                                        <tbody>
-                                            <tr>
-                                                <td>{_("ID")}</td>
-                                                <td>{r.id}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{_("Hostname")}</td>
-                                                <td>{r.hostname}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{_("Boot ID")}</td>
-                                                <td>{r.boot_id}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{_("Session ID")}</td>
-                                                <td>{r.session_id}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{_("PID")}</td>
-                                                <td>{r.pid}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{_("Start")}</td>
-                                                <td>{formatDateTime(r.start)}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{_("End")}</td>
-                                                <td>{formatDateTime(r.end)}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{_("Duration")}</td>
-                                                <td>{formatDuration(r.end - r.start)}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>{_("User")}</td>
-                                                <td>{r.user}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    {player}
                 </div>
             );
         }
