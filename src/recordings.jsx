@@ -404,6 +404,9 @@ class Recording extends React.Component {
 
     goBackToList() {
         if (cockpit.location.path[0]) {
+            if ("search_rec" in cockpit.location.options) {
+                delete cockpit.location.options.search_rec;
+            }
             cockpit.location.go([], cockpit.location.options);
         } else {
             cockpit.location.go('/');

@@ -607,7 +607,7 @@ class Slider extends React.Component {
 
 function SearchEntry(props) {
     return (
-        <li onClick={(e) => props.fastForwardToTS(props.pos, e)}>{props.pos}</li>
+        <span className="search-result"><a onClick={(e) => props.fastForwardToTS(props.pos, e)}>{formatDuration(props.pos)}</a></span>
     );
 }
 
@@ -616,11 +616,10 @@ class Search extends React.Component {
         super(props);
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleStream = this.handleStream.bind(this);
-        this.handleDone = this.handleDone.bind(this);
         this.handleError = this.handleError.bind(this);
         this.handleSearchSubmit = this.handleSearchSubmit.bind(this);
         this.state = {
-            search_rec: cockpit.location.options.search || "",
+            search: cockpit.location.options.search_rec || cockpit.location.options.search || "",
         };
     }
 
@@ -631,54 +630,48 @@ class Search extends React.Component {
         let state = {};
         state[name] = value;
         this.setState(state);
+        cockpit.location.go(cockpit.location.path[0], $.extend(cockpit.location.options, {search_rec: value}));
     }
 
     handleSearchSubmit() {
         this.journalctl = Journal.journalctl(
             this.props.matchList,
-            {count: "all", follow: false, merge: true, grep: this.state.search_rec});
+            {count: "all", follow: false, merge: true, grep: this.state.search});
         this.journalctl.fail(this.handleError);
         this.journalctl.stream(this.handleStream);
-        this.journalctl.done(this.handleDone);
     }
 
     handleStream(data) {
         let items = data.map(item => {
             return JSON.parse(item.MESSAGE);
         });
-        console.log(items);
         items = items.map(item => {
             return <SearchEntry key={item.id} fastForwardToTS={this.props.fastForwardToTS} pos={item.pos} />;
         });
-        console.log(items);
         this.setState({items: items});
     }
 
-    handleDone(data) {
-
-    }
-
     handleError(data) {
-
+        this.props.errorService.addMessage(data);
     }
 
-    componentWillMount() {
-
+    componentDidMount() {
+        if (this.state.search) {
+            this.handleSearchSubmit();
+        }
     }
 
     render() {
         return (
-            <React.Fragment>
-                <div className="input-group">
-                    <input type="text" className="form-control" name="search_rec" value={this.state.search_rec} onChange={this.handleInputChange} />
-                    <button className="btn btn-default" onClick={this.handleSearchSubmit}>Search</button>
+            <div className="search-wrap">
+                <div className="input-group search-component">
+                    <input type="text" className="form-control" name="search" value={this.state.search} onChange={this.handleInputChange} />
+                    <span className="input-group-btn"><button className="btn btn-default" onClick={this.handleSearchSubmit}><span className="glyphicon glyphicon-search" /></button></span>
                 </div>
-                <div>
-                    <ul>
-                        {this.state.items}
-                    </ul>
+                <div className="search-results">
+                    {this.state.items}
                 </div>
-            </React.Fragment>
+            </div>
         );
     }
 }
@@ -1288,6 +1281,9 @@ export class Player extends React.Component {
                                     </span>
                                     <div id="input-player-wrap">
                                         <InputPlayer input={this.state.input} />
+                                    </div>
+                                    <div>
+                                        <Search matchList={this.props.matchList} fastForwardToTS={this.fastForwardToTS} play={this.play} pause={this.pause} paused={this.state.paused} errorService={this.error_service} />
                                     </div>
                                     <ErrorList list={this.error_service.errors} />
                                 </div>
