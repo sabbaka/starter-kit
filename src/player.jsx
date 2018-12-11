@@ -1290,7 +1290,7 @@ export class Player extends React.Component {
                             </div>
                         </div>
                     </div>
-                    <div className="col-md-3">
+                    <div className="col-md-6">
                         <div className="panel panel-default">
                             <div className="panel-heading">
                                 <span>{_("Recording")}</span>
@@ -1336,16 +1336,6 @@ export class Player extends React.Component {
                                         </tr>
                                     </tbody>
                                 </table>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="col-md-3">
-                        <div className="panel panel-default">
-                            <div className="panel-heading">
-                                <span>{_("Search")}</span>
-                            </div>
-                            <div className="panel-body">
-                                <Search matchList={this.props.matchList} fastForwardToTS={this.fastForwardToTS} play={this.play} pause={this.pause} paused={this.state.paused} />
                             </div>
                         </div>
                     </div>
