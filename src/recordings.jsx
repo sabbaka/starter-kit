@@ -372,7 +372,7 @@ class Logs extends React.Component {
 
     render() {
         let r = this.props.recording;
-        if (r == null) {
+        if (r === null) {
             return <span>Loading...</span>;
         } else {
             return (
@@ -695,7 +695,7 @@ class View extends React.Component {
                     r.duration = r.end - r.start;
                     /* Find the recording in the list */
                     for (j = recordingList.length - 1;
-                        j >= 0 && recordingList[j] != r;
+                        j >= 0 && recordingList[j] !== r;
                         j--);
                     /* If found */
                     if (j >= 0) {

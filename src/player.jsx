@@ -204,7 +204,7 @@ let PacketBuffer = class {
             this.reportError("\"" + field + "\" field is missing");
         }
         value = object[field];
-        if (typeof (value) != typeof (type)) {
+        if (typeof (value) !== typeof (type)) {
             this.reportError("invalid \"" + field + "\" field type: " + typeof (value));
         }
         return value;
@@ -250,7 +250,7 @@ let PacketBuffer = class {
         /* Try to find an existing, matching tuple */
         for (i = 0; i < this.idxDfdList.length; i++) {
             idxDfd = this.idxDfdList[i];
-            if (idxDfd[0] == idx) {
+            if (idxDfd[0] === idx) {
                 return idxDfd[1].promise();
             } else if (idxDfd[0] > idx) {
                 break;
@@ -350,7 +350,7 @@ let PacketBuffer = class {
             matches = this.timingRE.exec(timing);
             if (matches === null) {
                 this.reportError(_("invalid timing string"));
-            } else if (matches[0] == "") {
+            } else if (matches[0] === "") {
                 break;
             }
 
@@ -359,7 +359,7 @@ let PacketBuffer = class {
             /* Delay */
             case "+":
                 x = parseInt(matches[1], 10);
-                if (x == 0) {
+                if (x === 0) {
                     break;
                 }
                 if (io.length > 0) {
@@ -374,8 +374,8 @@ let PacketBuffer = class {
                 /* Text or binary input */
             case "<":
             case "[":
-                x = parseInt(matches[(t == "<") ? 2 : 3], 10);
-                if (x == 0) {
+                x = parseInt(matches[(t === "<") ? 2 : 3], 10);
+                if (x === 0) {
                     break;
                 }
                 if (io.length > 0 && is_output) {
@@ -388,7 +388,7 @@ let PacketBuffer = class {
                 is_output = false;
                 /* Add (replacement) input characters */
                 s = in_txt.slice(in_txt_pos, in_txt_pos += x);
-                if (s.length != x) {
+                if (s.length !== x) {
                     this.reportError(_("timing entry out of input bounds"));
                 }
                 io.push(s);
@@ -396,8 +396,8 @@ let PacketBuffer = class {
                 /* Text or binary output */
             case ">":
             case "]":
-                x = parseInt(matches[(t == ">") ? 5 : 6], 10);
-                if (x == 0) {
+                x = parseInt(matches[(t === ">") ? 5 : 6], 10);
+                if (x === 0) {
                     break;
                 }
                 if (io.length > 0 && !is_output) {
@@ -410,7 +410,7 @@ let PacketBuffer = class {
                 is_output = true;
                 /* Add (replacement) output characters */
                 s = out_txt.slice(out_txt_pos, out_txt_pos += x);
-                if (s.length != x) {
+                if (s.length !== x) {
                     this.reportError(_("timing entry out of output bounds"));
                 }
                 io.push(s);
@@ -419,7 +419,7 @@ let PacketBuffer = class {
             case "=":
                 x = parseInt(matches[8], 10);
                 y = parseInt(matches[9], 10);
-                if (x == this.width && y == this.height) {
+                if (x === this.width && y === this.height) {
                     break;
                 }
                 if (io.length > 0) {
@@ -852,7 +852,7 @@ export class Player extends React.Component {
     }
 
     _transform(width, height) {
-        var relation = Math.min(
+        let relation = Math.min(
             this.state.containerWidth / this.state.term.element.offsetWidth,
             this.containerHeight / this.state.term.element.offsetHeight
         );
@@ -1167,23 +1167,23 @@ export class Player extends React.Component {
 
     componentWillUpdate(nextProps, nextState) {
         /* If we changed pause state or speed exponent */
-        if (nextState.paused != this.state.paused ||
-            nextState.speedExp != this.state.speedExp) {
+        if (nextState.paused !== this.state.paused ||
+            nextState.speedExp !== this.state.speedExp) {
             this.sync();
         }
     }
 
     componentDidUpdate(prevProps, prevState) {
         /* If we changed pause state or speed exponent */
-        if (this.state.paused != prevState.paused ||
-            this.state.speedExp != prevState.speedExp) {
+        if (this.state.paused !== prevState.paused ||
+            this.state.speedExp !== prevState.speedExp) {
             this.speed = Math.pow(2, this.state.speedExp);
             this.sync();
         }
-        if (this.state.input != prevState.input) {
+        if (this.state.input !== prevState.input) {
             scrollToBottom("input-textarea");
         }
-        if (prevProps.logsTs != this.props.logsTs) {
+        if (prevProps.logsTs !== this.props.logsTs) {
             this.fastForwardToTS(this.props.logsTs);
         }
     }
