@@ -30,13 +30,13 @@ class Config extends React.Component {
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.setConfig = this.setConfig.bind(this);
-        this.fileReadFailed = this.fileReadFailed.bind(this);
         this.readConfig = this.readConfig.bind(this);
         this.file = null;
         this.config = null;
         this.state = {
             config_loaded: false,
             file_error: false,
+            tlog_conf_error: false,
             submitting: "none",
             shell: "",
             notice: "",
@@ -107,15 +107,15 @@ class Config extends React.Component {
     setConfig(data) {
         delete data.configuration;
         delete data.args;
-        var flattenObject = function(ob) {
-            var toReturn = {};
+        let flattenObject = function(ob) {
+            let toReturn = {};
 
-            for (var i in ob) {
+            for (let i in ob) {
                 if (!ob.hasOwnProperty(i)) continue;
 
-                if ((typeof ob[i]) == 'object') {
-                    var flatObject = flattenObject(ob[i]);
-                    for (var x in flatObject) {
+                if ((typeof ob[i]) === 'object') {
+                    let flatObject = flattenObject(ob[i]);
+                    for (let x in flatObject) {
                         if (!flatObject.hasOwnProperty(x)) continue;
 
                         toReturn[i + '_' + x] = flatObject[x];
@@ -140,45 +140,32 @@ class Config extends React.Component {
         });
 
         proc.fail((fail) => {
-            console.log(fail);
+            if ("message" in fail) {
+                if (fail["message"] === "not-found") {
+                    this.setState({file_error: "tlog-rec-session is not found"});
+                }
+                if (fail["message"] === "tlog-rec-session exited with code 1") {
+                    this.setState({file_error: "tlog-rec-session exited with code 1"});
+                }
+            }
             this.readConfig();
         });
     }
 
     readConfig() {
-        let parseFunc = function(data) {
-            return json.parse(data, null, true);
-        };
-
         let stringifyFunc = function(data) {
             return json.stringify(data, null, true);
         };
+
         // needed for cockpit.file usage
         let syntax_object = {
-            parse: parseFunc,
-            stringify: stringifyFunc,
+            stringify: stringifyFunc
         };
 
         this.file = cockpit.file("/etc/tlog/tlog-rec-session.conf", {
             syntax: syntax_object,
             superuser: true,
         });
-        /*
-        let promise = this.file.read();
-
-        promise.done((data) => {
-            if (data === null) {
-                this.fileReadFailed();
-            }
-        }).fail((data) => {
-            this.fileReadFailed(data);
-        });
-        */
-    }
-
-    fileReadFailed(reason) {
-        console.log(reason);
-        this.setState({file_error: reason});
     }
 
     componentWillMount() {
@@ -193,151 +180,153 @@ class Config extends React.Component {
             );
         } else if (this.state.config_loaded === true && this.state.file_error === false) {
             return (
-                <form onSubmit={this.handleSubmit}>
-                    <table className="form-table-ct col-sm-3">
-                        <tbody>
-                            <tr>
-                                <td className="top"><label htmlFor="shell" className="control-label">Shell</label></td>
-                                <td>
-                                    <input type="text" id="shell" name="shell" value={this.state.shell}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="notice" className="control-label">Notice</label></td>
-                                <td>
-                                    <input type="text" id="notice" name="notice" value={this.state.notice}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="latency" className="control-label">Latency</label></td>
-                                <td>
-                                    <input type="number" step="1" id="latency" name="latency" value={this.state.latency}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="latency" className="control-label">Payload Size, bytes</label></td>
-                                <td>
-                                    <input type="number" step="1" id="payload" name="payload" value={this.state.payload}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="log_input" className="control-label">Log User's Input</label></td>
-                                <td>
-                                    <input type="checkbox" id="log_input" name="log_input" defaultChecked={this.state.log_input} onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="log_output" className="control-label">Log User's Output</label></td>
-                                <td>
-                                    <input type="checkbox" id="log_output" name="log_output" defaultChecked={this.state.log_output} onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="log_window" className="control-label">Log Window Resize</label></td>
-                                <td>
-                                    <input type="checkbox" id="log_window" name="log_window" defaultChecked={this.state.log_window} onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
+                <React.Fragment>
+                    <form onSubmit={this.handleSubmit}>
+                        <table className="form-table-ct col-sm-3">
+                            <tbody>
+                                <tr>
+                                    <td className="top"><label htmlFor="shell" className="control-label">Shell</label></td>
+                                    <td>
+                                        <input type="text" id="shell" name="shell" value={this.state.shell}
+                                           className="form-control" onChange={this.handleInputChange} />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="top"><label htmlFor="notice" className="control-label">Notice</label></td>
+                                    <td>
+                                        <input type="text" id="notice" name="notice" value={this.state.notice}
+                                           className="form-control" onChange={this.handleInputChange} />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="top"><label htmlFor="latency" className="control-label">Latency</label></td>
+                                    <td>
+                                        <input type="number" step="1" id="latency" name="latency" value={this.state.latency}
+                                           className="form-control" onChange={this.handleInputChange} />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="top"><label htmlFor="latency" className="control-label">Payload Size, bytes</label></td>
+                                    <td>
+                                        <input type="number" step="1" id="payload" name="payload" value={this.state.payload}
+                                           className="form-control" onChange={this.handleInputChange} />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="top"><label htmlFor="log_input" className="control-label">Log User's Input</label></td>
+                                    <td>
+                                        <input type="checkbox" id="log_input" name="log_input" defaultChecked={this.state.log_input} onChange={this.handleInputChange} />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="top"><label htmlFor="log_output" className="control-label">Log User's Output</label></td>
+                                    <td>
+                                        <input type="checkbox" id="log_output" name="log_output" defaultChecked={this.state.log_output} onChange={this.handleInputChange} />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="top"><label htmlFor="log_window" className="control-label">Log Window Resize</label></td>
+                                    <td>
+                                        <input type="checkbox" id="log_window" name="log_window" defaultChecked={this.state.log_window} onChange={this.handleInputChange} />
+                                    </td>
+                                </tr>
 
-                            <tr>
-                                <td className="top"><label htmlFor="limit_rate" className="control-label">Limit Rate, bytes/sec</label></td>
-                                <td>
-                                    <input type="number" step="1" id="limit_rate" name="limit_rate" value={this.state.limit_rate}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="limit_burst" className="control-label">Burst, bytes</label></td>
-                                <td>
-                                    <input type="number" step="1" id="limit_burst" name="limit_burst" value={this.state.limit_burst}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="limit_action" className="control-label">Logging Limit Action</label></td>
-                                <td>
-                                    <select name="limit_action" id="limit_action" onChange={this.handleInputChange} value={this.state.limit_action} className="form-control">
-                                        <option value="" />
-                                        <option value="pass">Pass</option>
-                                        <option value="delay">Delay</option>
-                                        <option value="drop">Drop</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="file_path" className="control-label">File Path</label></td>
-                                <td>
-                                    <input type="text" id="file_path" name="file_path" defaultChecked={this.state.file_path}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="syslog_facility" className="control-label">Syslog Facility</label></td>
-                                <td>
-                                    <input type="text" id="syslog_facility" name="syslog_facility" value={this.state.syslog_facility}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="syslog_priority" className="control-label">Syslog Priority</label></td>
-                                <td>
-                                    <select name="syslog_priority" id="syslog_priority" onChange={this.handleInputChange} value={this.state.syslog_priority} className="form-control">
-                                        <option value="" />
-                                        <option value="info">Info</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="journal_priority" className="control-label">Journal Priority</label></td>
-                                <td>
-                                    <select name="journal_priority" id="journal_priority" onChange={this.handleInputChange} value={this.state.journal_priority} className="form-control">
-                                        <option value="" />
-                                        <option value="info">Info</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="journal_augment" className="control-label">Journal Augment</label></td>
-                                <td>
-                                    <input type="checkbox" id="journal_augment" name="journal_augment" defaultChecked={this.state.journal_augment} onChange={this.handleInputChange} />
-                                </td>
+                                <tr>
+                                    <td className="top"><label htmlFor="limit_rate" className="control-label">Limit Rate, bytes/sec</label></td>
+                                    <td>
+                                        <input type="number" step="1" id="limit_rate" name="limit_rate" value={this.state.limit_rate}
+                                           className="form-control" onChange={this.handleInputChange} />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="top"><label htmlFor="limit_burst" className="control-label">Burst, bytes</label></td>
+                                    <td>
+                                        <input type="number" step="1" id="limit_burst" name="limit_burst" value={this.state.limit_burst}
+                                           className="form-control" onChange={this.handleInputChange} />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="top"><label htmlFor="limit_action" className="control-label">Logging Limit Action</label></td>
+                                    <td>
+                                        <select name="limit_action" id="limit_action" onChange={this.handleInputChange} value={this.state.limit_action} className="form-control">
+                                            <option value="" />
+                                            <option value="pass">Pass</option>
+                                            <option value="delay">Delay</option>
+                                            <option value="drop">Drop</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="top"><label htmlFor="file_path" className="control-label">File Path</label></td>
+                                    <td>
+                                        <input type="text" id="file_path" name="file_path" defaultChecked={this.state.file_path}
+                                           className="form-control" onChange={this.handleInputChange} />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="top"><label htmlFor="syslog_facility" className="control-label">Syslog Facility</label></td>
+                                    <td>
+                                        <input type="text" id="syslog_facility" name="syslog_facility" value={this.state.syslog_facility}
+                                           className="form-control" onChange={this.handleInputChange} />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="top"><label htmlFor="syslog_priority" className="control-label">Syslog Priority</label></td>
+                                    <td>
+                                        <select name="syslog_priority" id="syslog_priority" onChange={this.handleInputChange} value={this.state.syslog_priority} className="form-control">
+                                            <option value="" />
+                                            <option value="info">Info</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="top"><label htmlFor="journal_priority" className="control-label">Journal Priority</label></td>
+                                    <td>
+                                        <select name="journal_priority" id="journal_priority" onChange={this.handleInputChange} value={this.state.journal_priority} className="form-control">
+                                            <option value="" />
+                                            <option value="info">Info</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="top"><label htmlFor="journal_augment" className="control-label">Journal Augment</label></td>
+                                    <td>
+                                        <input type="checkbox" id="journal_augment" name="journal_augment" defaultChecked={this.state.journal_augment} onChange={this.handleInputChange} />
+                                    </td>
 
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="writer" className="control-label">Writer</label></td>
-                                <td>
-                                    <select name="writer" id="writer" onChange={this.handleInputChange} value={this.state.writer} className="form-control">
-                                        <option value="" />
-                                        <option value="journal">Journal</option>
-                                        <option value="syslog">Syslog</option>
-                                        <option value="file">File</option>
-                                    </select>
+                                </tr>
+                                <tr>
+                                    <td className="top"><label htmlFor="writer" className="control-label">Writer</label></td>
+                                    <td>
+                                        <select name="writer" id="writer" onChange={this.handleInputChange} value={this.state.writer} className="form-control">
+                                            <option value="" />
+                                            <option value="journal">Journal</option>
+                                            <option value="syslog">Syslog</option>
+                                            <option value="file">File</option>
+                                        </select>
 
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top">
-                                    <button className="btn btn-default" type="submit">Save</button>
-                                </td>
-                                <td>
-                                    <span style={{display: this.state.submitting}}>Saving...</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </form>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="top">
+                                        <button className="btn btn-default" type="submit">Save</button>
+                                    </td>
+                                    <td>
+                                        <span style={{display: this.state.submitting}}>Saving...</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>
+                </React.Fragment>
             );
         } else {
             return (
                 <div className="alert alert-danger">
                     <span className="pficon pficon-error-circle-o" />
-                    <p><strong>There is no configuration file of tlog present in your system.</strong></p>
-                    <p>Please, check the /etc/tlog/tlog-rec-session.conf or if tlog is installed.</p>
-                    <p><strong>{this.state.file_error}</strong></p>
+                    <p><strong>Getting configuraton from tlog-rec-session failed.</strong></p>
+                    <p>Please, check if tlog is installed and configuration file is present.</p>
+                    <strong>{this.state.file_error}</strong>
                 </div>
             );
         }
