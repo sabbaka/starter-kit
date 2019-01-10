@@ -36,7 +36,7 @@ var info = {
     files: [
         "index.html",
         "config.html",
-        "player.jsx",
+        // "player.jsx",
         "recordings.jsx",
         "recordings.css",
         "table.css",
