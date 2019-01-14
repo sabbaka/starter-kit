@@ -791,6 +791,7 @@ class Player extends React.Component {
             scale:          1,
             input:          "",
             mark:           0,
+            logsTs:         null,
         };
 
         this.containerHeight = 290;
@@ -990,7 +991,7 @@ class Player extends React.Component {
             }
 
             /* Send packet ts to the top */
-            this.props.onTsChange(this.pkt.pos);
+            // this.props.onTsChange(this.pkt.pos);
             this.setState({currentTsPost: parseInt(this.pkt.pos)});
 
             /* Output the packet */
@@ -1225,8 +1226,8 @@ class Player extends React.Component {
         if (this.state.input !== prevState.input) {
             scrollToBottom("input-textarea");
         }
-        if (prevProps.logsTs !== this.props.logsTs) {
-            this.fastForwardToTS(this.props.logsTs);
+        if (prevState.logsTs !== this.state.logsTs) {
+            this.fastForwardToTS(this.state.logsTs);
         }
     }
 
@@ -1393,6 +1394,12 @@ class Player extends React.Component {
                                 </table>
                             </div>
                         </div>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-md-12">
+                        <Logs recording={r.id} curTs={this.state.currentTsPost}
+                              jumpToTs={this.handleLogTsChange} />
                     </div>
                 </div>
             </React.Fragment>
@@ -2243,15 +2250,7 @@ class View extends React.Component {
         } else {
             return (
                 <React.Fragment>
-                    <Recording recording={this.recordingMap[this.state.recordingID]} onTsChange={this.handleTsChange} logsTs={this.state.logsTs} search={this.state.search} />
-                    <div className="container-fluid">
-                        <div className="row">
-                            <div className="col-md-12">
-                                <Logs recording={this.recordingMap[this.state.recordingID]} curTs={this.state.curTs}
-                                      jumpToTs={this.handleLogTsChange} />
-                            </div>
-                        </div>
-                    </div>
+                    <Recording recording={this.recordingMap[this.state.recordingID]} search={this.state.search} />
                 </React.Fragment>
             );
         }
