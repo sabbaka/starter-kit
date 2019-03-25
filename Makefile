@@ -2,7 +2,7 @@
 PACKAGE_NAME := $(shell awk '/"name":/ {gsub(/[",]/, "", $$2); print $$2}' package.json)
 VERSION := $(shell T=$$(git describe 2>/dev/null) || T=1; echo $$T | tr '-' '.')
 ifeq ($(TEST_OS),)
-TEST_OS = rhel-x
+TEST_OS = rhel-8-0
 endif
 export TEST_OS
 VM_IMAGE=$(CURDIR)/test/images/$(TEST_OS)
@@ -122,7 +122,7 @@ rpm: dist-gzip cockpit-$(PACKAGE_NAME).spec
 $(VM_IMAGE): rpm bots
 	rm -f $(VM_IMAGE) $(VM_IMAGE).qcow2
 	bots/image-customize -v -i cockpit -i `pwd`/cockpit-$(PACKAGE_NAME)-*.noarch.rpm -s $(CURDIR)/test/vm.install $(TEST_OS)
-	bots/image-customize -v -r "useradd tlog && usermod -u 981 tlog" $(TEST_OS)
+	bots/image-customize -v -r "usermod -u 981 tlog" $(TEST_OS)
 	bots/image-customize -v -u ./test/files/1.journal:/var/log/journal/1.journal $(TEST_OS)
 
 # convenience target for the above
@@ -136,14 +136,14 @@ check: $(NODE_MODULES_TEST) $(VM_IMAGE) test/common
 # checkout Cockpit's bots/ directory for standard test VM images and API to launch them
 # must be from cockpit's master, as only that has current and existing images; but testvm.py API is stable
 bots:
-	git fetch --depth=1 https://github.com/cockpit-project/cockpit.git
+	git fetch --depth=1 https://github.com/cockpit-project/cockpit.git master
 	git checkout --force FETCH_HEAD -- bots/
 	git reset bots
 
 # checkout Cockpit's test API; this has no API stability guarantee, so check out a stable tag
 # when you start a new project, use the latest relese, and update it from time to time
 test/common:
-	git fetch --depth=1 https://github.com/cockpit-project/cockpit.git 180
+	git fetch --depth=1 https://github.com/cockpit-project/cockpit.git master 
 	git checkout --force FETCH_HEAD -- test/common
 	git reset test/common
 
