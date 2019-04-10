@@ -18,10 +18,12 @@
 */
 "use strict";
 import React from 'react';
+import { Terminal as Term } from "xterm";
 let cockpit = require("cockpit");
 let _ = cockpit.gettext;
 let moment = require("moment");
-let Term = require("term.js-cockpit");
+// let Term = require("term.js-cockpit");
+// let Term = require("xterm");
 let Journal = require("journal");
 let $ = require("jquery");
 require("console.css");
