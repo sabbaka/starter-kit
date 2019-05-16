@@ -725,6 +725,7 @@ export class Player extends React.Component {
         this.fastForwardToTS = this.fastForwardToTS.bind(this);
         this.sendInput = this.sendInput.bind(this);
         this.clearInputPlayer = this.clearInputPlayer.bind(this);
+        this.export = this.export.bind(this);
 
         this.state = {
             cols:               80,
@@ -1138,6 +1139,29 @@ export class Player extends React.Component {
         this._transform();
     }
 
+    export() {
+        let command = "journalctl TLOG_REC=" + this.props.recording.id + " -o export | /usr/lib/systemd/systemd-journal-remote -o /tmp/" + this.props.recording.id + ".journal -";
+
+        console.log(command);
+        console.log(command.split(" "));
+        command = command.split(" ");
+        let proc = cockpit.spawn(command, {"superuser": "require", "err": "message"});
+
+        proc.done((data) => {
+            console.log(data);
+            proc.close();
+        });
+
+        proc.stream((data) => {
+            console.log(data);
+            proc.close();
+        });
+
+        proc.fail((fail) => {
+            console.log(fail);
+        });
+    }
+
     componentWillMount() {
         let term = new Term({
             cols: this.state.cols,
@@ -1307,6 +1331,7 @@ export class Player extends React.Component {
                         <div className="panel panel-default">
                             <div className="panel-heading">
                                 <span>{_("Recording")}</span>
+                                <button onClick={this.export}>Export</button>
                             </div>
                             <div className="panel-body">
                                 <table className="form-table-ct">
